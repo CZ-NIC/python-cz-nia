@@ -7,7 +7,10 @@ python:
 
 addons:
     apt:
-        - libxmlsec1-dev
+        update: true
+
+before_install:
+    - sudo apt-get install -y libxmlsec1-dev
 
 install:
     - pip install tox-travis
