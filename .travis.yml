@@ -5,6 +5,13 @@ python:
     - "3.5"
     - "3.6"
 
+addons:
+    apt:
+        update: true
+
+before_install:
+    - sudo apt-get install -y libxmlsec1-dev
+
 install:
     - pip install tox-travis
 
