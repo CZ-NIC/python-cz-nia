@@ -1,12 +1,14 @@
 """WSSE signature objects."""
+import datetime
 from base64 import b64decode
 
 import xmlsec
 from lxml.etree import Element, ETXPath, QName, SubElement
 from zeep import ns
 from zeep.utils import detect_soap_env
-from zeep.wsse.signature import Signature, _make_sign_key, _sign_node, _verify_envelope_with_key
-from zeep.wsse.utils import ensure_id, get_security_header
+from zeep.wsse.signature import (MemorySignature as ZeepMemorySignature, Signature as ZeepSignature, _make_sign_key,
+                                 _sign_node, _verify_envelope_with_key)
+from zeep.wsse.utils import ensure_id, get_security_header, get_timestamp
 
 
 def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
@@ -28,7 +30,16 @@ def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     # Insert the Signature node in the wsse:Security header.
     security = get_security_header(envelope)
     security.insert(0, signature)
-    security.append(Element(QName(ns.WSU, 'Timestamp')))
+
+    # Prepare Timestamp
+    timestamp = Element(QName(ns.WSU, 'Timestamp'))
+    created = Element(QName(ns.WSU, 'Created'))
+    created.text = get_timestamp()
+    expires = Element(QName(ns.WSU, 'Expires'))
+    expires.text = get_timestamp(datetime.datetime.utcnow() + datetime.timedelta(minutes=5))
+    timestamp.append(created)
+    timestamp.append(expires)
+    security.insert(0, timestamp)
 
     # Perform the actual signing.
     ctx = xmlsec.SignatureContext()
@@ -43,6 +54,12 @@ def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     # the X509 data (because it doesn't understand WSSE).
     sec_token_ref = SubElement(key_info, QName(ns.WSSE, 'SecurityTokenReference'))
     return security, sec_token_ref, x509_data
+
+
+def _sign_envelope_with_key(envelope, key):
+    """Overriden to use the `_signature_prepare`."""
+    security, sec_token_ref, x509_data = _signature_prepare(envelope, key)
+    sec_token_ref.append(x509_data)
 
 
 def _sign_envelope_with_key_binary(envelope, key):
@@ -76,7 +93,27 @@ def _sign_envelope_with_saml(envelope, key, assertion, assertion_id):
     x509_data.getparent().remove(x509_data)
 
 
-class BinarySignature(Signature):
+class MemorySignature(ZeepMemorySignature):
+    """Overriden to use the changed `_sing_envelope_with_key`."""
+
+    def apply(self, envelope, headers):
+        """Plugin entry point."""
+        key = _make_sign_key(self.key_data, self.cert_data, self.password)
+        _sign_envelope_with_key(envelope, key)
+        return envelope, headers
+
+
+class Signature(ZeepSignature):
+    """Overriden to use the changed `_sing_envelope_with_key`."""
+
+    def apply(self, envelope, headers):
+        """Plugin entry point."""
+        key = _make_sign_key(self.key_data, self.cert_data, self.password)
+        _sign_envelope_with_key(envelope, key)
+        return envelope, headers
+
+
+class BinarySignature(ZeepSignature):
     """Sign given SOAP envelope with WSSE sif using given key file and cert file.
 
     Place the ky information into BinarySecurityElement.
