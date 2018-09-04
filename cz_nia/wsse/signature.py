@@ -1,20 +1,22 @@
 """WSSE signature objects."""
+from base64 import b64decode
+
 import xmlsec
-from lxml.etree import Element, QName, SubElement
+from lxml.etree import Element, ETXPath, QName, SubElement
 from zeep import ns
 from zeep.utils import detect_soap_env
-from zeep.wsse.signature import Signature, _make_sign_key, _sign_node
+from zeep.wsse.signature import Signature, _make_sign_key, _sign_node, _verify_envelope_with_key
 from zeep.wsse.utils import ensure_id, get_security_header
 
 
-def _signature_prepare(envelope, key):
+def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     """Prepare all the data for signature.
 
     Mostly copied from zeep.wsse.signature.
     """
     soap_env = detect_soap_env(envelope)
     # Create the Signature node.
-    signature = xmlsec.template.create(envelope, xmlsec.Transform.EXCL_C14N, xmlsec.Transform.RSA_SHA1)
+    signature = xmlsec.template.create(envelope, xmlsec.Transform.EXCL_C14N, sign_method)
 
     # Add a KeyInfo node with X509Data child to the Signature. XMLSec will fill
     # in this template with the actual certificate details when it signs.
@@ -61,6 +63,19 @@ def _sign_envelope_with_key_binary(envelope, key):
     x509_data.getparent().remove(x509_data)
 
 
+def _sign_envelope_with_saml(envelope, key, assertion, assertion_id):
+    """Perform singature and place the key info into SecurityTokenReference."""
+    security, sec_token_ref, x509_data = _signature_prepare(envelope, key, sign_method=xmlsec.Transform.HMAC_SHA1)
+    # Update the sec_tok_ref object
+    sec_token_ref.attrib['TokenType'] = 'http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1'
+    key_iden_ref = SubElement(
+        sec_token_ref, QName(ns.WSSE, 'KeyIdentifier'),
+        {'ValueType': 'http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID'})
+    key_iden_ref.text = assertion_id
+    security.insert(1, assertion)
+    x509_data.getparent().remove(x509_data)
+
+
 class BinarySignature(Signature):
     """Sign given SOAP envelope with WSSE sif using given key file and cert file.
 
@@ -72,3 +87,28 @@ class BinarySignature(Signature):
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
         _sign_envelope_with_key_binary(envelope, key)
         return envelope, headers
+
+
+class SAMLTokenSignature(object):
+    """Sign given SOAP envelope with WSSE sig using given HMAC key."""
+
+    def __init__(self, assertion):
+        """Parse necessary data from the assertion."""
+        # XXX: For now we assume that the Assertion is lxml tree
+        # XXX: This can change later...
+        find = ETXPath("//{}/text()".format(QName('http://docs.oasis-open.org/ws-sx/ws-trust/200512', 'BinarySecret')))
+        self.assertion = assertion
+        self.key_data = b64decode(find(assertion)[0])
+        self.assertion_id = assertion.get('AssertionID')
+
+    def apply(self, envelope, headers, signatures=None):
+        """Plugin entry point."""
+        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
+        _sign_envelope_with_saml(envelope, key, self.assertion, self.assertion_id)
+        return envelope, headers
+
+    def verify(self, envelope):
+        """Plugin exit point."""
+        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
+        _verify_envelope_with_key(envelope, key)
+        return envelope
