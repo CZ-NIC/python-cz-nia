@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from lxml.etree import QName
 from zeep import ns
+from zeep.exceptions import SignatureVerificationFailed
 from zeep.wsse.signature import _make_sign_key
 
 from cz_nia.tests.utils import load_xml
@@ -67,6 +68,48 @@ class TestMemorySignature(TestCase):
             plugin = MemorySignature(key.read(), cert.read())
         envelope, headers = plugin.apply(load_xml(ENVELOPE), {})
         plugin.verify(envelope)
+
+    def test_verify_no_header(self):
+        plugin = MemorySignature(open(KEY_FILE).read(), open(CERT_FILE).read())
+        with self.assertRaises(SignatureVerificationFailed):
+            plugin.verify(load_xml(
+                """
+                <soapenv:Envelope xmlns:tns="http://tests.python-zeep.org/"
+                xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+                    <soapenv:Body>
+                        <tns:Function>
+                            <tns:Argument>OK</tns:Argument>
+                        </tns:Function>
+                    </soapenv:Body>
+                </soapenv:Envelope>
+                """))
+
+    def test_verify_no_security(self):
+        plugin = MemorySignature(open(KEY_FILE).read(), open(CERT_FILE).read())
+        with self.assertRaises(SignatureVerificationFailed):
+            plugin.verify(load_xml(ENVELOPE))
+
+    def test_verify_no_signature(self):
+        plugin = MemorySignature(open(KEY_FILE).read(), open(CERT_FILE).read())
+        plugin.verify(load_xml(
+            """
+            <soapenv:Envelope xmlns:tns="http://tests.python-zeep.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+            xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+                <soapenv:Header>
+                    <wsse:Security
+                    xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+                    </wsse:Security>
+                </soapenv:Header>
+                <soapenv:Body>
+                    <tns:Function>
+                        <tns:Argument>OK</tns:Argument>
+                    </tns:Function>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            """))
 
 
 class TestSignature(TestCase):

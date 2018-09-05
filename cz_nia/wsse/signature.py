@@ -5,9 +5,10 @@ from base64 import b64decode
 import xmlsec
 from lxml.etree import Element, ETXPath, QName, SubElement
 from zeep import ns
+from zeep.exceptions import SignatureVerificationFailed
 from zeep.utils import detect_soap_env
 from zeep.wsse.signature import (MemorySignature as ZeepMemorySignature, Signature as ZeepSignature, _make_sign_key,
-                                 _sign_node, _verify_envelope_with_key)
+                                 _make_verify_key, _sign_node, _verify_envelope_with_key as zeep_verify_envelope)
 from zeep.wsse.utils import ensure_id, get_security_header, get_timestamp
 
 
@@ -101,6 +102,30 @@ def _sign_envelope_with_saml(envelope, key, assertion, assertion_id):
     x509_data.getparent().remove(x509_data)
 
 
+def _verify_envelope_with_key(envelope, key):
+    """Verify WS-Security signature on given SOAP envelope with given cert.
+
+    Copy from zeep.wsse.signature except it does bail out if no signature is found.
+    """
+    soap_env = detect_soap_env(envelope)
+
+    header = envelope.find(QName(soap_env, 'Header'))
+    if header is None:
+        raise SignatureVerificationFailed()
+
+    security = header.find(QName(ns.WSSE, 'Security'))
+    if security is None:
+        raise SignatureVerificationFailed()
+
+    signature = security.find(QName(ns.DS, 'Signature'))
+
+    # Skip signature validation if not present, otherwise call the library function
+    if signature is None:
+        return
+    else:
+        zeep_verify_envelope(envelope, key)
+
+
 class MemorySignature(ZeepMemorySignature):
     """Overriden to use the changed `_sing_envelope_with_key`."""
 
@@ -109,6 +134,15 @@ class MemorySignature(ZeepMemorySignature):
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
         _sign_envelope_with_key(envelope, key)
         return envelope, headers
+
+    def verify(self, envelope):
+        """Plugin exit point.
+
+        Overriden to call overloaded function.
+        """
+        key = _make_verify_key(self.cert_data)
+        _verify_envelope_with_key(envelope, key)
+        return envelope
 
 
 class Signature(ZeepSignature):
@@ -119,6 +153,15 @@ class Signature(ZeepSignature):
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
         _sign_envelope_with_key(envelope, key)
         return envelope, headers
+
+    def verify(self, envelope):
+        """Plugin exit point.
+
+        Overriden to call overloaded function.
+        """
+        key = _make_verify_key(self.cert_data)
+        _verify_envelope_with_key(envelope, key)
+        return envelope
 
 
 class BinarySignature(ZeepSignature):
@@ -132,6 +175,15 @@ class BinarySignature(ZeepSignature):
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
         _sign_envelope_with_key_binary(envelope, key)
         return envelope, headers
+
+    def verify(self, envelope):
+        """Plugin exit point.
+
+        Overriden to call overloaded function.
+        """
+        key = _make_verify_key(self.cert_data)
+        _verify_envelope_with_key(envelope, key)
+        return envelope
 
 
 class SAMLTokenSignature(object):
