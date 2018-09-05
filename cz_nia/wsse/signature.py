@@ -46,6 +46,14 @@ def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     ctx.key = key
     _sign_node(ctx, signature, envelope.find(QName(soap_env, 'Body')))
     _sign_node(ctx, signature, security.find(QName(ns.WSU, 'Timestamp')))
+
+    # Remove newlines from signature...
+    for element in signature.iter():
+        if element.text is not None and '\n' in element.text:
+            element.text = element.text.replace('\n', '')
+        if element.tail is not None and '\n' in element.tail:
+            element.tail = element.tail.replace('\n', '')
+
     ctx.sign(signature)
 
     # Place the X509 data inside a WSSE SecurityTokenReference within
