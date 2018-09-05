@@ -34,7 +34,8 @@ class TestMemorySignature(TestCase):
     """Unittests for MemorySignature."""
 
     def test_signature(self):
-        plugin = MemorySignature(open(KEY_FILE).read(), open(CERT_FILE).read())
+        with open(KEY_FILE) as key, open(CERT_FILE) as cert:
+            plugin = MemorySignature(key.read(), cert.read())
         envelope, headers = plugin.apply(load_xml(ENVELOPE), {})
         plugin.verify(envelope)
 
@@ -52,7 +53,8 @@ class TestSAMLTokenSignature(TestCase):
     """Unittests dof SAMLTokenSignature."""
 
     def setUp(self):
-        self.assertion = load_xml(open(os.path.join(os.path.dirname(__file__), 'assertion.xml')).read())
+        with open(os.path.join(os.path.dirname(__file__), 'assertion.xml')) as f:
+            self.assertion = load_xml(f.read())
 
     def test_signature_saml(self):
         plugin = SAMLTokenSignature(self.assertion)
