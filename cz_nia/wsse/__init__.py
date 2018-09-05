@@ -1,5 +1,5 @@
 """Module with WSSE extensions."""
-from .signature import BinarySignature, SAMLTokenSignature
+from .signature import BinarySignature, MemorySignature, SAMLTokenSignature, Signature
 
 
-__all__ = ['BinarySignature', 'SAMLTokenSignature']
+__all__ = ['BinarySignature', 'MemorySignature', 'SAMLTokenSignature', 'Signature']
