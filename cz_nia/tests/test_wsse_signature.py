@@ -2,8 +2,13 @@
 import os
 from unittest import TestCase
 
+from lxml.etree import QName
+from zeep import ns
+from zeep.wsse.signature import _make_sign_key
+
 from cz_nia.tests.utils import load_xml
 from cz_nia.wsse import BinarySignature, MemorySignature, SAMLTokenSignature, Signature
+from cz_nia.wsse.signature import _signature_prepare
 
 CERT_FILE = os.path.join(os.path.dirname(__file__), 'certificate.pem')
 KEY_FILE = os.path.join(os.path.dirname(__file__), 'key.pem')
@@ -19,6 +24,30 @@ ENVELOPE = """
         </soapenv:Body>
     </soapenv:Envelope>
     """
+
+
+class TestSignaturePrepare(TestCase):
+    """Unittests for _signature_prepare."""
+
+    def setUp(self):
+        with open(KEY_FILE) as key, open(CERT_FILE) as cert:
+            self.key = _make_sign_key(key.read(), cert.read(), None)
+
+    def test_newline_strip(self):
+        security, _, _ = _signature_prepare(load_xml(ENVELOPE), self.key)
+        signature = security.find(QName(ns.DS, 'Signature'))
+        for element in signature.iter():
+            if element.tag in ('{http://www.w3.org/2000/09/xmldsig#}SignatureValue',
+                               '{http://www.w3.org/2000/09/xmldsig#}X509IssuerSerial',
+                               '{http://www.w3.org/2000/09/xmldsig#}X509IssuerName',
+                               '{http://www.w3.org/2000/09/xmldsig#}X509SerialNumber',
+                               '{http://www.w3.org/2000/09/xmldsig#}X509Certificate'):
+                # These are placed after the stripping, so we do not check them
+                continue
+            if element.text is not None:
+                self.assertNotIn('\n', element.text)
+            if element.tail is not None:
+                self.assertNotIn('\n', element.tail)
 
 
 class TestBinarySignature(TestCase):
