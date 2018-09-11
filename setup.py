@@ -14,4 +14,5 @@ setup(name='cz_nia',
       long_description_content_type='text/markdown',
       packages=find_packages(),
       install_requires=['zeep', 'xmlsec'],
-      extras_require={'quality': ['isort', 'flake8', 'pydocstyle']})
+      extras_require={'quality': ['isort', 'flake8', 'pydocstyle']},
+      dependency_links=['git+https://github.com/tpazderka/python-zeep.git@new_develop#egg=zeep-4.0'])
