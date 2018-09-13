@@ -9,10 +9,10 @@ from zeep.exceptions import SignatureVerificationFailed
 from zeep.utils import detect_soap_env
 from zeep.wsse.signature import (MemorySignature as ZeepMemorySignature, Signature as ZeepSignature, _make_sign_key,
                                  _make_verify_key, _sign_node, _verify_envelope_with_key as zeep_verify_envelope)
-from zeep.wsse.utils import ensure_id, get_security_header, get_timestamp
+from zeep.wsse.utils import ensure_id, get_or_create_header, get_security_header, get_timestamp
 
 
-def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
+def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1, signatures=None):
     """Prepare all the data for signature.
 
     Mostly copied from zeep.wsse.signature.
@@ -45,8 +45,20 @@ def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     # Perform the actual signing.
     ctx = xmlsec.SignatureContext()
     ctx.key = key
-    _sign_node(ctx, signature, envelope.find(QName(soap_env, 'Body')))
+    # Sign default elements
     _sign_node(ctx, signature, security.find(QName(ns.WSU, 'Timestamp')))
+
+    # Sign elements defined in WSDL
+    if signatures is not None:
+        if signatures['body'] or signatures['everything']:
+            _sign_node(ctx, signature, envelope.find(QName(soap_env, 'Body')))
+        header = get_or_create_header(envelope)
+        if signatures['everything']:
+            for node in header.iterchildren():
+                _sign_node(ctx, signature, node)
+        else:
+            for node in signatures['header']:
+                _sign_node(ctx, signature, header.find(QName(node['Namespace'], node['Name'])))
 
     # Remove newlines from signature...
     for element in signature.iter():
@@ -65,15 +77,15 @@ def _signature_prepare(envelope, key, sign_method=xmlsec.Transform.RSA_SHA1):
     return security, sec_token_ref, x509_data
 
 
-def _sign_envelope_with_key(envelope, key):
+def _sign_envelope_with_key(envelope, key, signatures=None):
     """Overriden to use the `_signature_prepare`."""
-    security, sec_token_ref, x509_data = _signature_prepare(envelope, key)
+    security, sec_token_ref, x509_data = _signature_prepare(envelope, key, signatures=signatures)
     sec_token_ref.append(x509_data)
 
 
-def _sign_envelope_with_key_binary(envelope, key):
+def _sign_envelope_with_key_binary(envelope, key, signatures=None):
     """Perofrm signature and place the key info in to BinarySecurityToken."""
-    security, sec_token_ref, x509_data = _signature_prepare(envelope, key)
+    security, sec_token_ref, x509_data = _signature_prepare(envelope, key, signatures=signatures)
     ref = SubElement(
         sec_token_ref, QName(ns.WSSE, 'Reference'),
         {'ValueType': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3'})
@@ -88,9 +100,10 @@ def _sign_envelope_with_key_binary(envelope, key):
     x509_data.getparent().remove(x509_data)
 
 
-def _sign_envelope_with_saml(envelope, key, assertion, assertion_id):
+def _sign_envelope_with_saml(envelope, key, assertion, assertion_id, signatures=None):
     """Perform singature and place the key info into SecurityTokenReference."""
-    security, sec_token_ref, x509_data = _signature_prepare(envelope, key, sign_method=xmlsec.Transform.HMAC_SHA1)
+    security, sec_token_ref, x509_data = _signature_prepare(envelope, key, sign_method=xmlsec.Transform.HMAC_SHA1,
+                                                            signatures=signatures)
     # Update the sec_tok_ref object
     sec_token_ref.attrib['TokenType'] = 'http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1'
     key_iden_ref = SubElement(
@@ -128,10 +141,10 @@ def _verify_envelope_with_key(envelope, key):
 class MemorySignature(ZeepMemorySignature):
     """Overriden to use the changed `_sing_envelope_with_key`."""
 
-    def apply(self, envelope, headers):
+    def apply(self, envelope, headers, signatures=None):
         """Plugin entry point."""
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
-        _sign_envelope_with_key(envelope, key)
+        _sign_envelope_with_key(envelope, key, signatures=signatures)
         return envelope, headers
 
     def verify(self, envelope):
@@ -147,10 +160,10 @@ class MemorySignature(ZeepMemorySignature):
 class Signature(ZeepSignature):
     """Overriden to use the changed `_sing_envelope_with_key`."""
 
-    def apply(self, envelope, headers):
+    def apply(self, envelope, headers, signatures=None):
         """Plugin entry point."""
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
-        _sign_envelope_with_key(envelope, key)
+        _sign_envelope_with_key(envelope, key, signatures=signatures)
         return envelope, headers
 
     def verify(self, envelope):
@@ -169,10 +182,10 @@ class BinarySignature(ZeepSignature):
     Place the ky information into BinarySecurityElement.
     """
 
-    def apply(self, envelope, headers):
+    def apply(self, envelope, headers, signatures=None):
         """Plugin entry point."""
         key = _make_sign_key(self.key_data, self.cert_data, self.password)
-        _sign_envelope_with_key_binary(envelope, key)
+        _sign_envelope_with_key_binary(envelope, key, signatures=signatures)
         return envelope, headers
 
     def verify(self, envelope):
@@ -200,7 +213,7 @@ class SAMLTokenSignature(object):
     def apply(self, envelope, headers):
         """Plugin entry point."""
         key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
-        _sign_envelope_with_saml(envelope, key, self.assertion, self.assertion_id)
+        _sign_envelope_with_saml(envelope, key, self.assertion, self.assertion_id, signatures=signatures)
         return envelope, headers
 
     def verify(self, envelope):
