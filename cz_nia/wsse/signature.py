@@ -76,13 +76,12 @@ def _sign_envelope_with_key_binary(envelope, key):
     ref = SubElement(
         sec_token_ref, QName(ns.WSSE, 'Reference'),
         {'ValueType': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3'})
-    ref_id = ensure_id(ref)
     bintok = Element(
         QName(ns.WSSE, 'BinarySecurityToken'),
-        {QName(ns.WSU, 'Id'): ref_id,
-         'ValueType': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
+        {'ValueType': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
          'EncodingType': 'http://docs.oasis-open.org/wss/2004/01/'
                          'oasis-200401-wss-soap-message-security-1.0#Base64Binary'})
+    ref.attrib['URI'] = '#' + ensure_id(bintok)
     bintok.text = x509_data.find(QName(ns.DS, 'X509Certificate')).text
     security.insert(1, bintok)
     x509_data.getparent().remove(x509_data)
@@ -146,7 +145,7 @@ class SAMLTokenSignature(object):
         self.key_data = b64decode(find(assertion)[0])
         self.assertion_id = assertion.get('AssertionID')
 
-    def apply(self, envelope, headers, signatures=None):
+    def apply(self, envelope, headers):
         """Plugin entry point."""
         key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
         _sign_envelope_with_saml(envelope, key, self.assertion, self.assertion_id)
