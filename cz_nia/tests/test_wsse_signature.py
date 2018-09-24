@@ -58,6 +58,13 @@ class TestBinarySignature(TestCase):
         plugin = BinarySignature(KEY_FILE, CERT_FILE)
         envelope, headers = plugin.apply(load_xml(ENVELOPE), {})
         plugin.verify(envelope)
+        # Test that the reference is correct
+        bintok = envelope.xpath('soapenv:Header/wsse:Security/wsse:BinarySecurityToken',
+                                namespaces={'soapenv': ns.SOAP_ENV_11, 'wsse': ns.WSSE})[0]
+        ref = envelope.xpath('soapenv:Header/wsse:Security/ds:Signature/ds:KeyInfo/wsse:SecurityTokenReference'
+                             '/wsse:Reference',
+                             namespaces={'soapenv': ns.SOAP_ENV_11, 'wsse': ns.WSSE, 'ds': ns.DS})[0]
+        self.assertEqual('#' + bintok.attrib[QName(ns.WSU, 'Id')], ref.attrib['URI'])
 
 
 class TestMemorySignature(TestCase):
