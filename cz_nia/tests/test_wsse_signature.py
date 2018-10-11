@@ -5,6 +5,7 @@ from unittest import TestCase
 from lxml.etree import QName
 from zeep import ns
 from zeep.exceptions import SignatureVerificationFailed
+from zeep.wsdl.utils import get_or_create_header
 from zeep.wsse.signature import _make_sign_key
 
 from cz_nia.tests.utils import load_xml
@@ -49,6 +50,31 @@ class TestSignaturePrepare(TestCase):
                 self.assertNotIn('\n', element.text)
             if element.tail is not None:
                 self.assertNotIn('\n', element.tail)
+
+    def test_sign_everything(self):
+        envelope = load_xml(ENVELOPE)
+        security, _, _ = _signature_prepare(envelope, self.key,
+                                            signatures={'body': False, 'everything': True, 'header': []})
+        signature = security.find(QName(ns.DS, 'Signature'))
+        # Get all references
+        refs = signature.xpath('ds:SignedInfo/ds:Reference/@URI', namespaces={'ds': ns.DS})
+        ID = QName(ns.WSU, 'Id')
+        # All header items should be signed
+        for element in get_or_create_header(envelope):
+            self.assertIn('#' + element.attrib[ID], refs)
+        # Body is signed
+        self.assertIn('#' + envelope.find(QName(ns.SOAP_ENV_11, 'Body')).attrib[ID], refs)
+
+    def test_sign_body(self):
+        envelope = load_xml(ENVELOPE)
+        security, _, _ = _signature_prepare(envelope, self.key,
+                                            signatures={'body': False, 'everything': True, 'header': []})
+        signature = security.find(QName(ns.DS, 'Signature'))
+        # Get all references
+        refs = signature.xpath('ds:SignedInfo/ds:Reference/@URI', namespaces={'ds': ns.DS})
+        ID = QName(ns.WSU, 'Id')
+        # Body is signed
+        self.assertIn('#' + envelope.find(QName(ns.SOAP_ENV_11, 'Body')).attrib[ID], refs)
 
 
 class TestBinarySignature(TestCase):
