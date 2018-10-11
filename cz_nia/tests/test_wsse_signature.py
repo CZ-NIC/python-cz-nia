@@ -26,6 +26,20 @@ ENVELOPE = """
         </soapenv:Body>
     </soapenv:Envelope>
     """
+HEADER_ENVELOPE = """
+    <soapenv:Envelope xmlns:tns="http://tests.python-zeep.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+        <soapenv:Header>
+            <tns:Item></tns:Item>
+        </soapenv:Header>
+        <soapenv:Body>
+            <tns:Function>
+                <tns:Argument>OK</tns:Argument>
+            </tns:Function>
+        </soapenv:Body>
+    </soapenv:Envelope>
+    """
 
 
 class TestSignaturePrepare(TestCase):
@@ -64,6 +78,7 @@ class TestSignaturePrepare(TestCase):
             self.assertIn('#' + element.attrib[ID], refs)
         # Body is signed
         self.assertIn('#' + envelope.find(QName(ns.SOAP_ENV_11, 'Body')).attrib[ID], refs)
+        self.assertIn('#' + security.find(QName(ns.WSU, 'Timestamp')).attrib[ID], refs)
 
     def test_sign_body(self):
         envelope = load_xml(ENVELOPE)
@@ -75,6 +90,30 @@ class TestSignaturePrepare(TestCase):
         ID = QName(ns.WSU, 'Id')
         # Body is signed
         self.assertIn('#' + envelope.find(QName(ns.SOAP_ENV_11, 'Body')).attrib[ID], refs)
+        self.assertIn('#' + security.find(QName(ns.WSU, 'Timestamp')).attrib[ID], refs)
+
+    def test_sign_empty(self):
+        envelope = load_xml(ENVELOPE)
+        security, _, _ = _signature_prepare(envelope, self.key,
+                                            signatures={'body': False, 'everything': False, 'header': []})
+        signature = security.find(QName(ns.DS, 'Signature'))
+        # Get all references
+        refs = signature.xpath('ds:SignedInfo/ds:Reference/@URI', namespaces={'ds': ns.DS})
+        ID = QName(ns.WSU, 'Id')
+        self.assertIn('#' + security.find(QName(ns.WSU, 'Timestamp')).attrib[ID], refs)
+
+    def test_sign_header_item(self):
+        envelope = load_xml(HEADER_ENVELOPE)
+        sig_header = [{'Namespace': 'http://tests.python-zeep.org/', 'Name': 'Item'}]
+        security, _, _ = _signature_prepare(envelope, self.key,
+                                            signatures={'body': False, 'everything': False, 'header': sig_header})
+        signature = security.find(QName(ns.DS, 'Signature'))
+        # Get all references
+        refs = signature.xpath('ds:SignedInfo/ds:Reference/@URI', namespaces={'ds': ns.DS})
+        ID = QName(ns.WSU, 'Id')
+        self.assertIn('#' + security.find(QName(ns.WSU, 'Timestamp')).attrib[ID], refs)
+        header = get_or_create_header(envelope)
+        self.assertIn('#' + header.find(QName('http://tests.python-zeep.org/', 'Item')).attrib[ID], refs)
 
 
 class TestBinarySignature(TestCase):
