@@ -210,7 +210,7 @@ class SAMLTokenSignature(object):
         self.key_data = b64decode(find(assertion)[0])
         self.assertion_id = assertion.get('AssertionID')
 
-    def apply(self, envelope, headers):
+    def apply(self, envelope, headers, signatures=None):
         """Plugin entry point."""
         key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
         _sign_envelope_with_saml(envelope, key, self.assertion, self.assertion_id, signatures=signatures)
