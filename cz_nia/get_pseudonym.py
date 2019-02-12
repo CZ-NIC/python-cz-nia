@@ -50,7 +50,7 @@ def _get_wsa_header(client, address):
     return AnyObject(applies_type, applies_type(_value_1=reference))
 
 
-def _call_ipsts(settings transport):
+def _call_ipsts(settings, transport):
     """Call IPSTS service and return the assertion."""
     client = Client(settings.IPSTS_WSDL,
                     wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
