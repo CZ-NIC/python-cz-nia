@@ -24,4 +24,4 @@ class CzNIAAppSettings(object):
         self.PUBLIC_WSDL = settings['public_wsdl']
         # Endpoint adresses
         self.FPSTS_ADDRESS = settings['fpsts_address']
-        self.PUBLIC_ADDRESS = settings['public_adress']
+        self.PUBLIC_ADDRESS = settings['public_address']
