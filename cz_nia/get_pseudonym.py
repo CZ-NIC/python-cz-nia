@@ -11,7 +11,8 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia import NIAException
-from cz_nia.message import NotifikaceMessage, ZtotozneniMessage
+from cz_nia.message import (EvidenceZapisMessage, NotifikaceMessage,
+                            ZtotozneniMessage)
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
 SETTINGS = Settings(forbid_entities=False, strict=False)
@@ -123,5 +124,17 @@ def get_notification(settings):
     sub_assertion = _call_fpsts(settings, transport, fp_assertion)
     # Create the request
     message = NotifikaceMessage(None)
+    body = _call_submission(settings, transport, sub_assertion, message)
+    return message.unpack(body)
+
+
+def write_vip(settings, data):
+    """Write the issued VIP."""
+    transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
+                          timeout=settings.TRANSPORT_TIMEOUT)
+    fp_assertion = _call_ipsts(settings, transport)
+    sub_assertion = _call_fpsts(settings, transport, fp_assertion)
+    # Create the request
+    message = EvidenceZapisMessage(data)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)

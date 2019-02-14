@@ -126,5 +126,38 @@ class NotifikaceMessage(NIAMessage):
         return result
 
 
+class EvidenceZapisMessage(NIAMessage):
+    """Message for TR_EVIDENCE_VIP_ZAPIS."""
+
+    request_namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
+    response_namespace = 'urn:nia.EvidenceVIPZapis/response:v1'
+    response_class = 'EvidenceVIPZapisResponse'
+    action = 'TR_EVIDENCE_VIP_ZAPIS'
+
+    def pack(self):
+        """Prepare the EVIDENCE_VIP_ZAPIS message."""
+        id_request = Element(QName(self.request_namespace, 'EvidenceVIPZapisRequest'))
+        bsi = SubElement(id_request, QName(self.request_namespace, 'Bsi'))
+        bsi.text = self.data.get('pseudonym')
+        id_prostr = SubElement(id_request, QName(self.request_namespace, 'IdentifikaceProstredku'))
+        id_prostr.text = self.data.get('identification')
+        loa = SubElement(id_request, QName(self.request_namespace, 'LoA'))
+        loa.text = self.data.get('level_of_authentication')
+        verified = SubElement(id_request, QName(self.request_namespace, 'OverenoDoklademTotoznosti'))
+        verified.text = self.data.get('verified')
+        if self.data.get('verified') and self.data.get('id_data'):
+            # We have verified using an ID and have the correct data
+            # TODO: Finish ...
+            pass
+        if self.data.get('state'):
+            state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
+            state.text = self.data.get('state')
+
+    def extract_message(self, response):
+        """Do nothing."""
+        return response
+
+
 NIAMessage.register(ZtotozneniMessage)
 NIAMessage.register(NotifikaceMessage)
+NIAMessage.register(EvidenceZapisMessage)
