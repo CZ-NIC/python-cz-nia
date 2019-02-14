@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns="urn:nia.notifikaceIdp/request:v1" targetNamespace="urn:nia.notifikaceIdp/request:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="NotifikaceIdpRequest" nillable="true" type="NotifikaceIdpRequest" >
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Request transakce TR_NOTIFIKACE_IDP, která zadanému Aifu odešle SMS nebo emailovou notifikaci. Transakce asynchronně zpracuje množinu zadaných notifikací naráz.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name="NotifikaceIdpRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="NotifikaceIdpId" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Pořadové číslo notifikace (ID notifikace), od kterého má být vyzvednutí notifikací započato. Není-li pořadové číslo v dotazu zadáno, začíná systém vyhledávat od prvního záznamu.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:long">
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

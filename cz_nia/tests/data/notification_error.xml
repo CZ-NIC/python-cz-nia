@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+  <s:Header>
+    <a:Action s:mustUnderstand="1">http://www.government-gateway.cz/wcf/submission/IBusinessTransactions/SubmitResponse</a:Action>
+    <a:RelatesTo>urn:uuid:ecb39681-eff5-4ae1-8284-a3a397169e51</a:RelatesTo>
+    <o:Security xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" s:mustUnderstand="1">
+      <u:Timestamp u:Id="_0">
+        <u:Created>2019-12-09T14:02:49.503Z</u:Created>
+        <u:Expires>2019-12-09T14:07:49.503Z</u:Expires>
+      </u:Timestamp>
+    </o:Security>
+  </s:Header>
+  <s:Body>
+    <SubmitResponse xmlns="http://www.government-gateway.cz/wcf/submission">
+      <SubmitResult xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <BodyBase64XML>PGJvZGllcyB4bWxucz0iaHR0cDovL3d3dy5nb3Zlcm5tZW50LWdhdGV3YXkuY3ovd2NmL3N1Ym1pc3Npb24iPjxCb2R5IElkPSIwIiB4bWxucz0iaHR0cDovL3d3dy5nb3Z0YWxrLmdvdi51ay9DTS9lbnZlbG9wZSI+PE5vdGlmaWthY2VJZHBSZXNwb25zZSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiB4bWxuczp4c2Q9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hIiB4bWxucz0idXJuOm5pYS5ub3RpZmlrYWNlSWRwL3Jlc3BvbnNlOnYxIj48U3RhdHVzPkVycm9yPC9TdGF0dXM+PERldGFpbD5HZW5lcmFsIEVycm9yLiBTZWUgbG9nIGZvciBtb3JlIGRldGFpbHM8L0RldGFpbD48L05vdGlmaWthY2VJZHBSZXNwb25zZT48L0JvZHk+PC9ib2RpZXM+</BodyBase64XML>
+        <Class>TR_NOTIFIKACE_IDP</Class>
+        <CorrelationID>87DFD01572FA48AE9F3B85B45EA366D1</CorrelationID>
+        <Function>submit</Function>
+        <GatewayTimestamp>2019-12-09T14:02:49.5032263Z</GatewayTimestamp>
+        <GovTalkErrors i:nil="true"/>
+        <PollInterval>PT20S</PollInterval>
+        <Qualifier>response</Qualifier>
+        <GatewayAdditions i:nil="true"/>
+      </SubmitResult>
+    </SubmitResponse>
+  </s:Body>
+</s:Envelope>
