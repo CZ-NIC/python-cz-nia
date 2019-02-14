@@ -92,4 +92,26 @@ class ZtotozneniMessage(NIAMessage):
         return response.find('nia:Pseudonym', namespaces=self.get_namespace_map).text
 
 
+class NotifikaceMessage(NIAMessage):
+    """Message for TR_NOTIFIKACE_IDP."""
+
+    request_namespace = 'urn:nia.notifikaceIdp/request:v1'
+    response_namespace = 'urn:nia.notifikaceIdp/response:v1'
+    response_class = 'NotifikaceIdpResponse'
+    action = 'TR_NOTIFIKACE_IDP'
+
+    def pack(self):
+        """Prepare the NOTIFIKACE message."""
+        id_request = Element(QName(self.request_namespace, 'NotifikaceIdpRequest'))
+        if self.data is not None:
+            idp_id = SubElement(id_request, QName(self.request_namespace, 'NotifikaceIdpId'))
+            idp_id.text = self.data.get('id')
+        return id_request
+
+    def extract_message(self, response):
+        """Get list of notifications from the message."""
+        return response.find('nia:XXX', namespaces=self.get_namespace_map).text
+
+
 NIAMessage.register(ZtotozneniMessage)
+NIAMessage.register(NotifikaceMessage)

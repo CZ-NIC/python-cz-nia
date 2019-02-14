@@ -11,7 +11,7 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia import NIAException
-from cz_nia.message import ZtotozneniMessage
+from cz_nia.message import NotifikaceMessage, ZtotozneniMessage
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
 SETTINGS = Settings(forbid_entities=False, strict=False)
@@ -110,5 +110,18 @@ def get_pseudonym(settings, user_data):
     fp_assertion = _call_ipsts(settings, transport)
     sub_assertion = _call_fpsts(settings, transport, fp_assertion)
     message = ZtotozneniMessage(user_data)
+    # Call the endpoint
+    body = _call_submission(settings, transport, sub_assertion, message)
+    return message.unpack(body)
+
+
+def get_notification(settings):
+    """Get notifications."""
+    transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
+                          timeout=settings.TRANSPORT_TIMEOUT)
+    fp_assertion = _call_ipsts(settings, transport)
+    sub_assertion = _call_fpsts(settings, transport, fp_assertion)
+    # Create the request
+    message = NotifikaceMessage(None)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)
