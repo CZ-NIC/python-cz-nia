@@ -1,8 +1,7 @@
 """CZ_NIA applocation settings wrapper."""
-from __future__ import unicode_literals
 
 
-class CzNIAAppSettings(object):
+class CzNiaAppSettings(object):
     """CZ_NIA specific settings."""
 
     def __init__(self, settings):
@@ -19,9 +18,9 @@ class CzNIAAppSettings(object):
         self.KEY = settings['key']
         self.PASSWORD = settings['password']
         # WSDL files
-        self.IPSTS_WSDL = settings['ipsts_wsdl']
-        self.FPSTS_WSDL = settings['fpsts_wsdl']
+        self.IDENTITY_WSDL = settings['identity_wsdl']
+        self.FEDERATION_WSDL = settings['federation_wsdl']
         self.PUBLIC_WSDL = settings['public_wsdl']
         # Endpoint adresses
-        self.FPSTS_ADDRESS = settings['fpsts_address']
+        self.FEDERATION_ADDRESS = settings['federation_address']
         self.PUBLIC_ADDRESS = settings['public_address']
