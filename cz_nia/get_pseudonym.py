@@ -1,10 +1,8 @@
 """Views for communication with NIA."""
-from __future__ import unicode_literals
-
 from base64 import b64decode
 from enum import Enum, unique
 
-from lxml.etree import Element, QName, SubElement, fromstring
+from lxml.etree import QName
 from zeep import Client, Settings
 from zeep.cache import SqliteCache
 from zeep.exceptions import Error
@@ -12,6 +10,8 @@ from zeep.ns import WSA, WSP
 from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
+from cz_nia import NIAException
+from cz_nia.message import ZtotozneniMessage
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
 SETTINGS = Settings(forbid_entities=False, strict=False)
@@ -23,9 +23,6 @@ class NIANamespaces(str, Enum):
 
     WS_TRUST = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
     SUBMISSION = 'http://www.government-gateway.cz/wcf/submission'
-    NIA_URN_3 = 'urn:nia.ztotozneni/request:v3'
-    NIA_URN_4 = 'urn:nia.ztotozneni/response:v4'
-    GOVTALK = 'http://www.govtalk.gov.uk/CM/envelope'
 
 
 @unique
@@ -35,11 +32,6 @@ class NIAConstants(str, Enum):
     ASSERTION = 'urn:oasis:names:tc:SAML:1.0:assertion'
     WS_TRUST_ISSUE = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
     WS_TRUST_SYM_KEY = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey'
-    ID_ACTION = 'TR_ZTOTOZNENI'
-
-
-class NIAException(Exception):
-    """Custom class for NIA exceptions."""
 
 
 def _get_wsa_header(client, address):
@@ -94,42 +86,21 @@ def _call_fpsts(settings, transport, assertion):
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
-def _call_submission(settings, transport, assertion, user_data):
+def _call_submission(settings, transport, assertion, message):
     """Call Submission service and return the body."""
     client = Client(settings.PUBLIC_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
-    # Create the request with user data
-    id_request = Element(QName(NIANamespaces.NIA_URN_3.value, 'ZtotozneniRequest'))
-    name = SubElement(id_request, QName(NIANamespaces.NIA_URN_3.value, 'Jmeno'))
-    name.text = user_data.get('first_name')
-    surname = SubElement(id_request, QName(NIANamespaces.NIA_URN_3.value, 'Prijmeni'))
-    surname.text = user_data.get('last_name')
-    date_of_birth = SubElement(id_request, QName(NIANamespaces.NIA_URN_3.value, 'DatumNarozeni'))
-    date_of_birth.text = user_data.get('birth_date').isoformat()
-    compare_type = SubElement(id_request, QName(NIANamespaces.NIA_URN_3.value, 'TypPorovnani'))
-    compare_type.text = 'diakritika'
     # Prepare the Body
     bodies_type = client.get_type(QName(NIANamespaces.SUBMISSION.value, 'ArrayOfBodyPart'))
     body_part_type = client.get_type(QName(NIANamespaces.SUBMISSION.value, 'BodyPart'))
     # Call the service
     service = client.bind('Public', 'Token')
     try:
-        response = service.Submit(NIAConstants.ID_ACTION.value,
-                                  bodies_type(body_part_type(Body={'_value_1': id_request})), '')
+        response = service.Submit(message.ACTION,
+                                  bodies_type(body_part_type(Body={'_value_1': message.pack()})), '')
     except Error as err:
         raise NIAException(err)
     return b64decode(response.BodyBase64XML)
-
-
-def _parse_data(body):
-    """Parse the body response for data."""
-    nsmap = {'gov': NIANamespaces.GOVTALK.value,
-             'nia4': NIANamespaces.NIA_URN_4.value}
-    body = fromstring(body)
-    response = body.find('gov:Body/nia4:ZtotozneniResponse', namespaces=nsmap)
-    if response.find('nia4:Status', namespaces=nsmap).text != 'OK':
-        raise NIAException(response.find('nia4:Detail', namespaces=nsmap).text)
-    return response.find('nia4:Pseudonym', namespaces=nsmap).text
 
 
 def get_pseudonym(settings, user_data):
@@ -138,5 +109,6 @@ def get_pseudonym(settings, user_data):
                           timeout=settings.TRANSPORT_TIMEOUT)
     fp_assertion = _call_ipsts(settings, transport)
     sub_assertion = _call_fpsts(settings, transport, fp_assertion)
-    body = _call_submission(settings, transport, sub_assertion, user_data)
-    return _parse_data(body)
+    message = ZtotozneniMessage(user_data)
+    body = _call_submission(settings, transport, sub_assertion, message)
+    return message.unpack(body)
