@@ -12,7 +12,7 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import IdentificationMessage, NiaMessage
+from cz_nia.message import IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
 from cz_nia.settings import CzNiaAppSettings
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
@@ -104,5 +104,17 @@ def get_pseudonym(settings: CzNiaAppSettings, user_data: Dict[str, Any]) -> str:
     fp_assertion = _call_identity(settings, transport)
     sub_assertion = _call_federation(settings, transport, fp_assertion)
     message = IdentificationMessage(user_data)
+    body = _call_submission(settings, transport, sub_assertion, message)
+    return message.unpack(body)
+
+
+def write_authenticator(settings: CzNiaAppSettings, data):
+    """Write the issued VIP."""
+    transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
+                          timeout=settings.TRANSPORT_TIMEOUT)
+    fp_assertion = _call_identity(settings, transport)
+    sub_assertion = _call_federation(settings, transport, fp_assertion)
+    # Create the request
+    message = WriteAuthenticatorMessage(data)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)

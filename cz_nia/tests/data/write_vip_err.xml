@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+  <s:Header>
+    <a:Action s:mustUnderstand="1">http://www.government-gateway.cz/wcf/submission/IBusinessTransactions/SubmitResponse</a:Action>
+    <a:RelatesTo>urn:uuid:c6bfd16e-716d-428e-a3b5-3a41008c0bbb</a:RelatesTo>
+    <o:Security xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" s:mustUnderstand="1">
+      <u:Timestamp u:Id="_0">
+        <u:Created>2019-06-17T09:42:57.366Z</u:Created>
+        <u:Expires>2019-06-17T09:47:57.366Z</u:Expires>
+      </u:Timestamp>
+    </o:Security>
+  </s:Header>
+  <s:Body>
+    <SubmitResponse xmlns="http://www.government-gateway.cz/wcf/submission">
+      <SubmitResult xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <BodyBase64XML>PGJvZGllcyB4bWxucz0iaHR0cDovL3d3dy5nb3Zlcm5tZW50LWdhdGV3YXkuY3ovd2NmL3N1Ym1pc3Npb24iPg0KICA8Qm9keSBJZD0iMCIgeG1sbnM9Imh0dHA6Ly93d3cuZ292dGFsay5nb3YudWsvQ00vZW52ZWxvcGUiPg0KICAgIDxFdmlkZW5jZVZJUFphcGlzUmVzcG9uc2UgeG1sbnM9InVybjpuaWEuRXZpZGVuY2VWSVBaYXBpcy9yZXNwb25zZTp2MSIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSI+DQogICAgICA8U3RhdHVzPkVycm9yPC9TdGF0dXM+DQogICAgICA8RGV0YWlsPklkZW50aWZpY2F0aW9uIHJlY29yZCBhbHJlYWR5IGV4aXN0czwvRGV0YWlsPg0KICAgIDwvRXZpZGVuY2VWSVBaYXBpc1Jlc3BvbnNlPg0KICA8L0JvZHk+DQo8L2JvZGllcz4=</BodyBase64XML>
+        <Class>TR_EVIDENCE_VIP_ZAPIS</Class>
+        <CorrelationID>705913AB631B4FF897744FA5EE9A2C46</CorrelationID>
+        <Function>submit</Function>
+        <GatewayTimestamp>2019-06-17T09:42:57.3665896Z</GatewayTimestamp>
+        <GovTalkErrors i:nil="true"/>
+        <PollInterval>PT20S</PollInterval>
+        <Qualifier>response</Qualifier>
+        <GatewayAdditions i:nil="true"/>
+      </SubmitResult>
+    </SubmitResponse>
+  </s:Body>
+</s:Envelope>

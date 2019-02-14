@@ -113,3 +113,42 @@ class IdentificationMessage(NiaMessage):
     def extract_message(self, response: Element) -> str:
         """Get pseudonym from the message."""
         return response.find('nia:Pseudonym', namespaces=self.get_namespace_map).text
+
+
+class WriteAuthenticatorMessage(NiaMessage):
+    """Message for TR_EVIDENCE_VIP_ZAPIS."""
+
+    request_namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
+    response_namespace = 'urn:nia.EvidenceVIPZapis/response:v1'
+    response_class = 'EvidenceVIPZapisResponse'
+    action = 'TR_EVIDENCE_VIP_ZAPIS'
+    xmlschema_definition = 'EvidenceVIPZapisRequest.xsd'
+
+    def create_message(self) -> Element:
+        """Prepare the EVIDENCE_VIP_ZAPIS message."""
+        id_request = Element(QName(self.request_namespace, 'EvidenceVIPZapisRequest'))
+        bsi = SubElement(id_request, QName(self.request_namespace, 'Bsi'))
+        bsi.text = self.data.get('pseudonym')
+        id_prostr = SubElement(id_request, QName(self.request_namespace, 'IdentifikaceProstredku'))
+        id_prostr.text = self.data.get('identification')
+        loa = SubElement(id_request, QName(self.request_namespace, 'LoA'))
+        loa.text = self.data.get('level_of_authentication')
+        if self.data.get('state'):
+            state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
+            state.text = self.data.get('state')
+        verified = SubElement(id_request, QName(self.request_namespace, 'OverenoDoklademTotoznosti'))
+        # This has to be lowercase string
+        verified.text = self.data.get('verified', 'false').lower()
+        if self.data.get('verified') and self.data.get('id_data'):
+            id_data = self.data.get('id_data')
+            # We have verified using an ID and have the correct data
+            id_card = SubElement(id_request, QName(self.request_namespace, 'PrukazTotoznosti'))
+            id_card_number = SubElement(id_card, QName(self.request_namespace, 'Cislo'))
+            id_card_number.text = id_data.get('number')
+            id_card_type = SubElement(id_card, QName(self.request_namespace, 'Druh'))
+            id_card_type.text = id_data.get('type')
+        return id_request
+
+    def extract_message(self, response):
+        """Do nothing."""
+        return None

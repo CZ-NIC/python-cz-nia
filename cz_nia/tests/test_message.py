@@ -5,7 +5,7 @@ from unittest import TestCase
 from lxml.etree import DocumentInvalid, Element, QName, SubElement, fromstring
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import IdentificationMessage, NiaMessage
+from cz_nia.message import IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope"> \
@@ -124,6 +124,63 @@ class TestIdentificationMessage(TestCase):
             QName(namespace, 'Prijmeni'): 'Tester',
             QName(namespace, 'TypPorovnani'): 'diakritika',
             QName(namespace, 'DatumNarozeni'): '2000-05-01',
+        }
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        for child in message.iterchildren():
+            self.assertEqual(child.text, expected[child.tag])
+
+
+class TestWriteAuthenticatorMessage(TestCase):
+    """Unittests for WriteAuthenticatorMessage."""
+
+    def test_create_message_unverified(self):
+        message = WriteAuthenticatorMessage({'identification': 'some_vip', 'level_of_authentication': 'High',
+                                             'verified': 'false', 'pseudonym': 'some_pseudonym'}).create_message()
+        namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
+        expected = {
+            QName(namespace, 'Bsi'): 'some_pseudonym',
+            QName(namespace, 'IdentifikaceProstredku'): 'some_vip',
+            QName(namespace, 'LoA'): 'High',
+            QName(namespace, 'OverenoDoklademTotoznosti'): 'false',
+        }
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        for child in message.iterchildren():
+            self.assertEqual(child.text, expected[child.tag])
+
+    def test_create_message_verified(self):
+        message = WriteAuthenticatorMessage({'identification': 'some_vip', 'level_of_authentication': 'High',
+                                             'verified': 'true', 'pseudonym': 'some_pseudonym',
+                                             'id_data': {'number': '42', 'type': 'P'}}).create_message()
+        namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
+        expected = {
+            QName(namespace, 'Bsi'): 'some_pseudonym',
+            QName(namespace, 'IdentifikaceProstredku'): 'some_vip',
+            QName(namespace, 'LoA'): 'High',
+            QName(namespace, 'OverenoDoklademTotoznosti'): 'true',
+            QName(namespace, 'PrukazTotoznosti'): None,
+        }
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        for child in message.iterchildren():
+            self.assertEqual(child.text, expected[child.tag])
+        id_card = message.find(QName(namespace, 'PrukazTotoznosti'))
+        expected_card = {
+            QName(namespace, 'Cislo'): '42',
+            QName(namespace, 'Druh'): 'P',
+        }
+        for child in id_card.iterchildren():
+            self.assertEqual(child.text, expected_card[child.tag])
+
+    def test_create_message_state(self):
+        message = WriteAuthenticatorMessage({'identification': 'some_vip', 'level_of_authentication': 'High',
+                                             'verified': 'false', 'pseudonym': 'some_pseudonym',
+                                             'state': 'Aktivni'}).create_message()
+        namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
+        expected = {
+            QName(namespace, 'Bsi'): 'some_pseudonym',
+            QName(namespace, 'IdentifikaceProstredku'): 'some_vip',
+            QName(namespace, 'LoA'): 'High',
+            QName(namespace, 'OverenoDoklademTotoznosti'): 'false',
+            QName(namespace, 'Stav'): 'Aktivni',
         }
         self.assertEqual(message.nsmap.get(message.prefix), namespace)
         for child in message.iterchildren():
