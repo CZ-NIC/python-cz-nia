@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns="urn:nia.EvidenceVIPZmena/request:v1" targetNamespace="urn:nia.EvidenceVIPZmena/request:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="EvidenceVIPZmenaRequest" nillable="true" type="EvidenceVIPZmenaRequest" >
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Request transakce TR_EVIDENCE_VIP_ZMENA pro zápis změny vydaného identifikačního prostředku.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name="EvidenceVIPZmenaRequest">
+    <xs:sequence>
+
+      <xs:element name="Bsi" type="BsiType" minOccurs="1" maxOccurs="1" nillable="false">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            BSI IdP.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="IdentifikaceProstredku" type="NonEmptyNormStringType" minOccurs="1" maxOccurs="1" nillable="false">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Identifikátor prostředku pro elektronickou identifikaci.
+          </xs:documentation>
+        </xs:annotation>       
+      </xs:element>
+
+      <xs:element name="LoA" type="LoAType" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Úroveň zajištění.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="Stav" type="StavType" minOccurs="1" maxOccurs="1" nillable="false">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Stav vydaného identifikačního prostředku.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>     
+
+      <xs:element name="Zprava">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Popis změny.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="0"/>
+            <xs:maxLength value="255"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element> 
+    
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="StavType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Stav vydaného identifikačního prostředku.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Neaktivni">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Vydaný identifikační prostředek je ve stavu neaktivní.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Aktivni">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Vydaný identifikační prostředek je ve stavu aktivní.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>      
+      <xs:enumeration value="Ukonceny">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Vydaný identifikační prostředek je ve stavu ukončený.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="LoAType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Úrovně zajištění.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Zajištění žádné nebo neznámé.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Low">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Zajištění nízké.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Substantial">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Zajištění značné.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="High">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Zajištění vysoké.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="BsiType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Bezvýznamový směrový identifikátor.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="NonEmptyNormStringType">
+        <!-- This enforces the length to be exactly 256 which is clearly not the case ...
+        <xs:length value="256" />
+        -->
+        <xs:maxLength value="256" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="NonEmptyNormStringType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Neprázdný řetězec jako základ dat, kde není akceptován prázdný údaj a nejsou akceptovány prázdné znaky na začátku a konci.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[\S]+.*[\S]+"/>
+      <xs:pattern value="[\S]{1}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+
+</xs:schema>

@@ -5,7 +5,7 @@ from unittest import TestCase
 from lxml.etree import DocumentInvalid, Element, QName, SubElement, fromstring
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
+from cz_nia.message import ChangeAuthenticatorMessage, IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope"> \
@@ -181,6 +181,26 @@ class TestWriteAuthenticatorMessage(TestCase):
             QName(namespace, 'LoA'): 'High',
             QName(namespace, 'OverenoDoklademTotoznosti'): 'false',
             QName(namespace, 'Stav'): 'Aktivni',
+        }
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        for child in message.iterchildren():
+            self.assertEqual(child.text, expected[child.tag])
+
+
+class TestChangeAuthenticatorMessage(TestCase):
+    """Unittests for ChangeAuthenticatorMessage."""
+
+    def test_create_message(self):
+        message = ChangeAuthenticatorMessage({'identification': 'some_vip', 'level_of_authentication': 'High',
+                                              'state': 'Aktivni', 'pseudonym': 'some_pseudonym',
+                                              'message': 'some message to the authorities'}).create_message()
+        namespace = 'urn:nia.EvidenceVIPZmena/request:v1'
+        expected = {
+            QName(namespace, 'Bsi'): 'some_pseudonym',
+            QName(namespace, 'IdentifikaceProstredku'): 'some_vip',
+            QName(namespace, 'LoA'): 'High',
+            QName(namespace, 'Stav'): 'Aktivni',
+            QName(namespace, 'Zprava'): 'some message to the authorities',
         }
         self.assertEqual(message.nsmap.get(message.prefix), namespace)
         for child in message.iterchildren():

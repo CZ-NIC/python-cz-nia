@@ -8,7 +8,8 @@ from zeep.transports import Transport
 
 import responses
 from cz_nia.exceptions import NiaException
-from cz_nia.functions import _call_federation, _call_identity, _call_submission, get_pseudonym, write_authenticator
+from cz_nia.functions import (_call_federation, _call_identity, _call_submission, change_authenticator, get_pseudonym,
+                              write_authenticator)
 from cz_nia.message import IdentificationMessage
 from cz_nia.settings import CzNiaAppSettings
 
@@ -156,3 +157,33 @@ class TestWriteAuthenticator(TestCase):
             with self.assertRaises(NiaException) as err:
                 write_authenticator(SETTINGS, data)
             self.assertEqual(str(err.exception), 'Identification record already exists')
+
+
+class TestChangeAuthenticator(TestCase):
+    """Unittests for change_authenticator function."""
+
+    def test_change_authenticator(self):
+        data = {'pseudonym': '1d71ff1a-d732-4485-a8dc-ad4c42a8a739', 'identification': 'vip_identification',
+                'state': 'Aktivni', 'level_of_authentication': 'High'}
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
+                     body=file_content('IPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/FPSTS/Issue.svc',
+                     body=file_content('FPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/WS/submission/Public.svc/token',
+                     body=file_content('change_vip.xml'))
+            change_authenticator(SETTINGS, data)
+
+    def test_change_authenticator_error(self):
+        data = {'pseudonym': '1d71ff1a-d732-4485-a8dc-ad4c42a8a739', 'identification': 'vip_identification',
+                'state': 'Aktivni', 'level_of_authentication': 'High'}
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
+                     body=file_content('IPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/FPSTS/Issue.svc',
+                     body=file_content('FPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/WS/submission/Public.svc/token',
+                     body=file_content('change_vip_err.xml'))
+            with self.assertRaises(NiaException) as err:
+                change_authenticator(SETTINGS, data)
+            self.assertEqual(str(err.exception), 'Required record does not exists')
