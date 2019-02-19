@@ -152,6 +152,32 @@ class EvidenceZapisMessage(NIAMessage):
         if self.data.get('state'):
             state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
             state.text = self.data.get('state')
+        return id_request
+
+    def extract_message(self, response):
+        """Do nothing."""
+        return response
+
+
+class EvidenceZmenaMessage(NIAMessage):
+    """Message for TR_EVIDENCE_VIP_ZMENA."""
+
+    request_namespace = 'urn:nia.EvidenceVIPZmena/request:v1'
+    response_namespace = 'urn:nia.EvidenceVIPZmena/response:v1'
+    response_class = 'EvidenceVIPZmenaResponse'
+    action = 'TR_EVIDENCE_VIP_ZMENA'
+
+    def pack(self):
+        """Prepare the EVIDENCE_VIP_ZMENA message."""
+        id_request = Element(QName(self.request_namespace, 'EvidenceVIPZmenaRequest'))
+        bsi = SubElement(id_request, QName(self.request_namespace, 'Bsi'))
+        bsi.text = self.data.get('pseudonym')
+        id_prostr = SubElement(id_request, QName(self.request_namespace, 'IdentifikaceProstredku'))
+        id_prostr.text = self.data.get('identification')
+        loa = SubElement(id_request, QName(self.request_namespace, 'LoA'))
+        loa.text = self.data.get('level_of_authentication')
+        state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
+        state.text = self.data.get('state')
 
     def extract_message(self, response):
         """Do nothing."""
@@ -161,3 +187,4 @@ class EvidenceZapisMessage(NIAMessage):
 NIAMessage.register(ZtotozneniMessage)
 NIAMessage.register(NotifikaceMessage)
 NIAMessage.register(EvidenceZapisMessage)
+NIAMessage.register(EvidenceZmenaMessage)
