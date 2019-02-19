@@ -184,7 +184,32 @@ class EvidenceZmenaMessage(NIAMessage):
         return response
 
 
+class ZneplatnenePseudonymyMessage(NIAMessage):
+    """Message for TR_ZNEPLATNENE_PSEUDONYMY."""
+
+    request_namespace = 'urn:nia.zneplatnenePseudonymy/request:v1'
+    response_namespace = 'urn:nia.zneplatnenePseudonymy/response:v1'
+    response_class = 'ZneplatnenePseudonymyResponse'
+    action = 'TR_ZNEPLATNENE_PSEUDONYMY'
+
+    def pack(self):
+        """Prepare the ZNEPLATNENE_PSEUDONYMY message."""
+        id_request = Element(QName(self.request_namespace, 'ZneplatnenePseudonymyRequest'))
+        # TODO: Add possibility to include dates ...
+        return id_request
+
+    def extract_message(self, response):
+        """Return list of invalidated pseudonyms."""
+        pseudonyms = response.findall('nia:Pseudonyms/nia:Pseudonym', namespaces=self.get_namespace_map)
+        results = []
+        for pseudonym in pseudonyms:
+            results.append({'Pseudonym': pseudonym.find('nia:Id', namespaces=self.get_namespace_map).text,
+                            'date': pseudonym.find('nia:Zneplatneno', namespaces=self.get_namespace_map).text})
+        return results
+
+
 NIAMessage.register(ZtotozneniMessage)
 NIAMessage.register(NotifikaceMessage)
 NIAMessage.register(EvidenceZapisMessage)
 NIAMessage.register(EvidenceZmenaMessage)
+NIAMessage.register(ZneplatnenePseudonymyMessage)

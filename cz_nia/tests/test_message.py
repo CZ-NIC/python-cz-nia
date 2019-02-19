@@ -5,7 +5,7 @@ from unittest import TestCase
 from lxml.etree import QName
 
 from cz_nia import NIAException
-from cz_nia.message import ZtotozneniMessage, NotifikaceMessage
+from cz_nia.message import ZtotozneniMessage, NotifikaceMessage, ZneplatnenePseudonymyMessage
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope"> \
@@ -101,3 +101,38 @@ class TestNotifikaceMessage(TestCase):
                     'more_notifications': True,
                     'notifications': [{'Id': '132', 'Pseudonym': 'some_pseudonym', 'Source': 'ROBREF'}]}
         self.assertEqual(NotifikaceMessage(None).unpack(response), expected)
+
+
+class TestZneplatnenePseudonymyMessage(TestCase):
+    """Unittests for ZneplatnenePseudonymyMessage."""
+
+    def test_parse_error(self):
+        content = '<ZneplatnenePseudonymyResponse xmlns:xsd="htp://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+                   xmlns="urn:nia.zneplatnenePseudonymy/response:v1"> \
+                   <Status>Error</Status> \
+                   <Detail>Invalid combination of request parameters</Detail> \
+                   </ZneplatnenePseudonymyResponse>'
+        response = BASE_BODY.format(CONTENT=content)
+        with self.assertRaisesRegexp(NIAException, 'Invalid combination of request parameters'):
+            ZneplatnenePseudonymyMessage(None).unpack(response)
+
+    def test_parse_success(self):
+        content = '<ZneplatnenePseudonymyResponse xmlns:xsd="htp://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+                   xmlns="urn:nia.zneplatnenePseudonymy/response:v1"> \
+                   <Pseudonyms> \
+                   <Pseudonym> \
+                   <Id>some_pseudonym</Id> \
+                   <Zneplatneno>2016-06-15T15:58:50.719248+02:00</Zneplatneno> \
+                   </Pseudonym> \
+                   </Pseudonyms> \
+                   <Status>OK</Status> \
+                   <Interval> \
+                   <DatumOd>2016-06-15T14:33:41.9753822+02:00</DatumOd> \
+                   <DatumDo>2016-06-15T16:07:09.6647232+02:00</DatumDo> \
+                   </Interval> \
+                   </ZneplatnenePseudonymyResponse>'
+        response = BASE_BODY.format(CONTENT=content)
+        self.assertEqual(ZneplatnenePseudonymyMessage(None).unpack(response),
+                         [{'Pseudonym': 'some_pseudonym', 'date': '2016-06-15T15:58:50.719248+02:00'}])
