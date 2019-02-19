@@ -9,13 +9,27 @@ from cz_nia import NIAException
 class NIAMessage(ABC):
     """Base class for messages."""
 
-    # Common properties
-    GOVTALK = 'http://www.govtalk.gov.uk/CM/envelope'
-    # These are individual properties
-    REQUEST_NAMESPACE = None
-    RESPONSE_NAMESPACE = None
-    RESPONSE_CLASS = None
-    ACTION = None
+    govtalk_namespace = 'http://www.govtalk.gov.uk/CM/envelope'
+
+    @property
+    @abstractmethod
+    def request_namespace(self):
+        """Namespace of the request."""
+
+    @property
+    @abstractmethod
+    def response_namespace(self):
+        """Namespace of the rsponse."""
+
+    @property
+    @abstractmethod
+    def response_class(self):
+        """Class of the response."""
+
+    @property
+    @abstractmethod
+    def action(self):
+        """What action should be performed."""
 
     def __init__(self, data):
         """Store the data we want to pack."""
@@ -32,7 +46,7 @@ class NIAMessage(ABC):
     @property
     def get_namespace_map(self):
         """Return namespace map for the message."""
-        return {'gov': self.GOVTALK, 'nia': self.RESPONSE_NAMESPACE}
+        return {'gov': self.govtalk_namespace, 'nia': self.response_namespace}
 
     def unpack(self, response):
         """Unpack the data from the response."""
@@ -46,7 +60,7 @@ class NIAMessage(ABC):
         """
         body = fromstring(message)
         nsmap = self.get_namespace_map
-        response = body.find('gov:Body/nia:{}'.format(self.RESPONSE_CLASS), namespaces=nsmap)
+        response = body.find('gov:Body/nia:{}'.format(self.response_class), namespaces=nsmap)
         if response.find('nia:Status', namespaces=nsmap).text != 'OK':
             raise NIAException(response.find('nia:Detail', namespaces=nsmap).text)
         return response
@@ -55,21 +69,21 @@ class NIAMessage(ABC):
 class ZtotozneniMessage(NIAMessage):
     """Message for TR_ZTOTOZNENI."""
 
-    REQUEST_NAMESPACE = 'urn:nia.ztotozneni/request:v3'
-    RESPONSE_NAMESPACE = 'urn:nia.ztotozneni/response:v4'
-    RESPONSE_CLASS = 'ZtotozneniResponse'
-    ACTION = 'TR_ZTOTOZNENI'
+    request_namespace = 'urn:nia.ztotozneni/request:v3'
+    response_namespace = 'urn:nia.ztotozneni/response:v4'
+    response_class = 'ZtotozneniResponse'
+    action = 'TR_ZTOTOZNENI'
 
     def pack(self):
         """Prepare the ZTOTOZNENI message with user data."""
-        id_request = Element(QName(self.REQUEST_NAMESPACE, 'ZtotozneniRequest'))
-        name = SubElement(id_request, QName(self.REQUEST_NAMESPACE, 'Jmeno'))
+        id_request = Element(QName(self.request_namespace, 'ZtotozneniRequest'))
+        name = SubElement(id_request, QName(self.request_namespace, 'Jmeno'))
         name.text = self.data.get('first_name')
-        surname = SubElement(id_request, QName(self.REQUEST_NAMESPACE, 'Prijmeni'))
+        surname = SubElement(id_request, QName(self.request_namespace, 'Prijmeni'))
         surname.text = self.data.get('last_name')
-        date_of_birth = SubElement(id_request, QName(self.REQUEST_NAMESPACE, 'DatumNarozeni'))
+        date_of_birth = SubElement(id_request, QName(self.request_namespace, 'DatumNarozeni'))
         date_of_birth.text = self.data.get('birth_date').isoformat()
-        compare_type = SubElement(id_request, QName(self.REQUEST_NAMESPACE, 'TypPorovnani'))
+        compare_type = SubElement(id_request, QName(self.request_namespace, 'TypPorovnani'))
         compare_type.text = 'diakritika'
         return id_request
 

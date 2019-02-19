@@ -96,7 +96,7 @@ def _call_submission(settings, transport, assertion, message):
     # Call the service
     service = client.bind('Public', 'Token')
     try:
-        response = service.Submit(message.ACTION,
+        response = service.Submit(message.action,
                                   bodies_type(body_part_type(Body={'_value_1': message.pack()})), '')
     except Error as err:
         raise NIAException(err)
