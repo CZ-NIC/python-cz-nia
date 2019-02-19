@@ -109,8 +109,21 @@ class NotifikaceMessage(NIAMessage):
         return id_request
 
     def extract_message(self, response):
-        """Get list of notifications from the message."""
-        return response.find('nia:XXX', namespaces=self.get_namespace_map).text
+        """Get notifications from the message."""
+        result = {'notifications': [], 'last_id': None, 'more_notifications': False}
+        notifications = response.findall('nia:SeznamNotifikaceIdp/nia:NotifikaceIdp', namespaces=self.get_namespace_map)
+        if not notifications:
+            return result
+        for notification in notifications:
+            result['notifications'].append({
+                'Id': notification.find('nia:NotifikaceIdpId', namespaces=self.get_namespace_map).text,
+                'Pseudonym': notification.find('nia:Bsi', namespaces=self.get_namespace_map).text,
+                'Source': notification.find('nia:Zdroj', namespaces=self.get_namespace_map).text,
+            })
+        result['last_id'] = response.find('nia:NotifikaceIdpPosledniId', namespaces=self.get_namespace_map).text
+        result['more_notifications'] = response.find('nia:ExistujiDalsiNotifikace',
+                                                     namespaces=self.get_namespace_map).text.lower() == 'true'
+        return result
 
 
 NIAMessage.register(ZtotozneniMessage)
