@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 
 from lxml.etree import Element, QName, SubElement, fromstring
 
-from cz_nia import NIAException
+from cz_nia.exceptions import NiaException
 
 
-class NIAMessage(ABC):
+class NiaMessage(ABC):
     """Base class for messages."""
 
     govtalk_namespace = 'http://www.govtalk.gov.uk/CM/envelope'
@@ -19,7 +19,7 @@ class NIAMessage(ABC):
     @property
     @abstractmethod
     def response_namespace(self):
-        """Namespace of the rsponse."""
+        """Namespace of the response."""
 
     @property
     @abstractmethod
@@ -56,17 +56,17 @@ class NIAMessage(ABC):
     def verify_message(self, message):
         """Verify the status of the message.
 
-        Raises NIAException if the status is not OK.
+        Raises NiaException if the status is not OK.
         """
         body = fromstring(message)
         nsmap = self.get_namespace_map
         response = body.find('gov:Body/nia:{}'.format(self.response_class), namespaces=nsmap)
         if response.find('nia:Status', namespaces=nsmap).text != 'OK':
-            raise NIAException(response.find('nia:Detail', namespaces=nsmap).text)
+            raise NiaException(response.find('nia:Detail', namespaces=nsmap).text)
         return response
 
 
-class ZtotozneniMessage(NIAMessage):
+class ZtotozneniMessage(NiaMessage):
     """Message for TR_ZTOTOZNENI."""
 
     request_namespace = 'urn:nia.ztotozneni/request:v3'
@@ -90,6 +90,3 @@ class ZtotozneniMessage(NIAMessage):
     def extract_message(self, response):
         """Get pseudonym from the message."""
         return response.find('nia:Pseudonym', namespaces=self.get_namespace_map).text
-
-
-NIAMessage.register(ZtotozneniMessage)

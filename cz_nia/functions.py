@@ -10,28 +10,20 @@ from zeep.ns import WSA, WSP
 from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
-from cz_nia import NIAException
+from cz_nia.exceptions import NiaException
 from cz_nia.message import ZtotozneniMessage
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
 SETTINGS = Settings(forbid_entities=False, strict=False)
+ASSERTION = 'urn:oasis:names:tc:SAML:1.0:assertion'
 
 
 @unique
-class NIANamespaces(str, Enum):
+class NiaNamespaces(str, Enum):
     """Enum for NIA namespaces not included in WSDL."""
 
     WS_TRUST = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
     SUBMISSION = 'http://www.government-gateway.cz/wcf/submission'
-
-
-@unique
-class NIAConstants(str, Enum):
-    """Enum for NIA constants."""
-
-    ASSERTION = 'urn:oasis:names:tc:SAML:1.0:assertion'
-    WS_TRUST_ISSUE = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
-    WS_TRUST_SYM_KEY = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey'
 
 
 def _get_wsa_header(client, address):
@@ -49,14 +41,14 @@ def _call_ipsts(settings, transport):
                                          settings.PASSWORD),
                     settings=SETTINGS, transport=transport)
     # Prepare token
-    token_type = client.get_element(QName(NIANamespaces.WS_TRUST.value, 'TokenType'))
-    token = AnyObject(token_type, token_type(NIAConstants.ASSERTION.value))
+    token_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'TokenType'))
+    token = AnyObject(token_type, token_type(ASSERTION))
     # Prepare request
-    request_type = client.get_element(QName(NIANamespaces.WS_TRUST.value, 'RequestType'))
-    request = AnyObject(request_type, request_type(NIAConstants.WS_TRUST_ISSUE.value))
+    request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
+    request = AnyObject(request_type, request_type(QName(NiaNamespaces.WS_TRUST.value, 'Issue')))
     # Prepare key
-    key_type = client.get_element(QName(NIANamespaces.WS_TRUST.value, 'KeyType'))
-    key = AnyObject(key_type, key_type(NIAConstants.WS_TRUST_SYM_KEY.value))
+    key_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'KeyType'))
+    key = AnyObject(key_type, key_type(QName(NiaNamespaces.WS_TRUST.value, 'SymmetricKey')))
     # Prepare WSA header
     applies = _get_wsa_header(client, settings.FPSTS_ADDRESS)
     # Call the service
@@ -64,7 +56,7 @@ def _call_ipsts(settings, transport):
     try:
         response = service.Trust13Issue(_value_1=[token, request, key, applies])
     except Error as err:
-        raise NIAException(err)
+        raise NiaException(err)
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
@@ -73,8 +65,8 @@ def _call_fpsts(settings, transport, assertion):
     client = Client(settings.FPSTS_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
     # prepare request
-    request_type = client.get_element(QName(NIANamespaces.WS_TRUST.value, 'RequestType'))
-    request = AnyObject(request_type, request_type(NIAConstants.WS_TRUST_ISSUE.value))
+    request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
+    request = AnyObject(request_type, request_type(QName(NiaNamespaces.WS_TRUST.value, 'Issue')))
     # Prepare WSA header
     applies = _get_wsa_header(client, settings.PUBLIC_ADDRESS)
     # Call the service
@@ -82,7 +74,7 @@ def _call_fpsts(settings, transport, assertion):
     try:
         response = service.Trust13Issue(_value_1=[applies, request])
     except Error as err:
-        raise NIAException(err)
+        raise NiaException(err)
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
@@ -91,15 +83,15 @@ def _call_submission(settings, transport, assertion, message):
     client = Client(settings.PUBLIC_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
     # Prepare the Body
-    bodies_type = client.get_type(QName(NIANamespaces.SUBMISSION.value, 'ArrayOfBodyPart'))
-    body_part_type = client.get_type(QName(NIANamespaces.SUBMISSION.value, 'BodyPart'))
+    bodies_type = client.get_type(QName(NiaNamespaces.SUBMISSION.value, 'ArrayOfBodyPart'))
+    body_part_type = client.get_type(QName(NiaNamespaces.SUBMISSION.value, 'BodyPart'))
     # Call the service
     service = client.bind('Public', 'Token')
     try:
         response = service.Submit(message.action,
                                   bodies_type(body_part_type(Body={'_value_1': message.pack()})), '')
     except Error as err:
-        raise NIAException(err)
+        raise NiaException(err)
     return b64decode(response.BodyBase64XML)
 
 

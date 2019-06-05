@@ -1,8 +1,7 @@
 """CZ_NIA applocation settings wrapper."""
-from __future__ import unicode_literals
 
 
-class CzNIAAppSettings(object):
+class CzNiaAppSettings(object):
     """CZ_NIA specific settings."""
 
     def __init__(self, settings):
