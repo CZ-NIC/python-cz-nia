@@ -34,9 +34,9 @@ def _get_wsa_header(client, address):
     return AnyObject(applies_type, applies_type(_value_1=reference))
 
 
-def _call_ipsts(settings, transport):
-    """Call IPSTS service and return the assertion."""
-    client = Client(settings.IPSTS_WSDL,
+def _call_identity(settings, transport):
+    """Call IPSTS (Identity provider) service and return the assertion."""
+    client = Client(settings.IDENTITY_WSDL,
                     wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
                                          settings.PASSWORD),
                     settings=SETTINGS, transport=transport)
@@ -50,7 +50,7 @@ def _call_ipsts(settings, transport):
     key_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'KeyType'))
     key = AnyObject(key_type, key_type(QName(NiaNamespaces.WS_TRUST.value, 'SymmetricKey')))
     # Prepare WSA header
-    applies = _get_wsa_header(client, settings.FPSTS_ADDRESS)
+    applies = _get_wsa_header(client, settings.FEDERATION_ADDRESS)
     # Call the service
     service = client.bind('SecurityTokenService', 'WS2007HttpBinding_IWSTrust13Sync2')
     try:
@@ -60,9 +60,9 @@ def _call_ipsts(settings, transport):
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
-def _call_fpsts(settings, transport, assertion):
-    """Call FPSTS service and return the assertion."""
-    client = Client(settings.FPSTS_WSDL, wsse=SAMLTokenSignature(assertion),
+def _call_federation(settings, transport, assertion):
+    """Call FPSTS (Federation provider) service and return the assertion."""
+    client = Client(settings.FEDERATION_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
     # prepare request
     request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
@@ -99,8 +99,8 @@ def get_pseudonym(settings, user_data):
     """Get pseudonym from NIA servers for given user data."""
     transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
                           timeout=settings.TRANSPORT_TIMEOUT)
-    fp_assertion = _call_ipsts(settings, transport)
-    sub_assertion = _call_fpsts(settings, transport, fp_assertion)
+    fp_assertion = _call_identity(settings, transport)
+    sub_assertion = _call_federation(settings, transport, fp_assertion)
     message = ZtotozneniMessage(user_data)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)
