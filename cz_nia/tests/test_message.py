@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from lxml.etree import QName
 
-from cz_nia import NIAException
+from cz_nia.exceptions import NiaException
 from cz_nia.message import ZtotozneniMessage
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
@@ -25,7 +25,7 @@ class TestZtotozneniMessage(TestCase):
                    <Detail>Error parsing request</Detail> \
                    </ZtotozneniResponse>'
         response = BASE_BODY.format(CONTENT=content)
-        with self.assertRaisesRegexp(NIAException, 'Error parsing request'):
+        with self.assertRaisesRegexp(NiaException, 'Error parsing request'):
             ZtotozneniMessage('').unpack(response)
 
     def test_parse_success(self):
