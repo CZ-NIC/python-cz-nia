@@ -1,6 +1,7 @@
 """Views for communication with NIA."""
 from base64 import b64decode
 from enum import Enum, unique
+from typing import Dict
 
 from lxml.etree import QName
 from zeep import Client, Settings
@@ -11,7 +12,8 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import ZtotozneniMessage
+from cz_nia.message import NiaMessage, IdentificationMessage
+from cz_nia.settings import CzNiaAppSettings
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
 SETTINGS = Settings(forbid_entities=False, strict=False)
@@ -26,7 +28,7 @@ class NiaNamespaces(str, Enum):
     SUBMISSION = 'http://www.government-gateway.cz/wcf/submission'
 
 
-def _get_wsa_header(client, address):
+def _get_wsa_header(client: Client, address: str) -> AnyObject:
     """Get WSA header from the client."""
     applies_type = client.get_element(QName(WSP, 'AppliesTo'))
     reference_type = client.get_element(QName(WSA, 'EndpointReference'))
@@ -34,7 +36,7 @@ def _get_wsa_header(client, address):
     return AnyObject(applies_type, applies_type(_value_1=reference))
 
 
-def _call_identity(settings, transport):
+def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> str:
     """Call IPSTS (Identity provider) service and return the assertion."""
     client = Client(settings.IDENTITY_WSDL,
                     wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
@@ -60,7 +62,7 @@ def _call_identity(settings, transport):
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
-def _call_federation(settings, transport, assertion):
+def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion: str) -> str:
     """Call FPSTS (Federation provider) service and return the assertion."""
     client = Client(settings.FEDERATION_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
@@ -78,7 +80,7 @@ def _call_federation(settings, transport, assertion):
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
-def _call_submission(settings, transport, assertion, message):
+def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion, message: NiaMessage) -> bytes:
     """Call Submission service and return the body."""
     client = Client(settings.PUBLIC_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
@@ -95,12 +97,12 @@ def _call_submission(settings, transport, assertion, message):
     return b64decode(response.BodyBase64XML)
 
 
-def get_pseudonym(settings, user_data):
+def get_pseudonym(settings: CzNiaAppSettings, user_data: Dict[str, str]):
     """Get pseudonym from NIA servers for given user data."""
     transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
                           timeout=settings.TRANSPORT_TIMEOUT)
     fp_assertion = _call_identity(settings, transport)
     sub_assertion = _call_federation(settings, transport, fp_assertion)
-    message = ZtotozneniMessage(user_data)
+    message = IdentificationMessage(user_data)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)

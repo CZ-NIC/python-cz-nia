@@ -1,5 +1,6 @@
 """Messages for communication with NIA."""
 from abc import ABC, abstractmethod
+from typing import Dict
 
 from lxml.etree import Element, QName, SubElement, fromstring
 
@@ -36,24 +37,24 @@ class NiaMessage(ABC):
         self.data = data
 
     @abstractmethod
-    def pack(self):
+    def pack(self) -> Element:
         """Pack the message containing data."""
 
     @abstractmethod
-    def extract_message(self, message):
+    def extract_message(self, message: bytes) -> bytes:
         """Extract relevant data from the message."""
 
     @property
-    def get_namespace_map(self):
+    def get_namespace_map(self) -> Dict[str, str]:
         """Return namespace map for the message."""
         return {'gov': self.govtalk_namespace, 'nia': self.response_namespace}
 
-    def unpack(self, response):
+    def unpack(self, response: bytes) -> bytes:
         """Unpack the data from the response."""
         parsed_message = self.verify_message(response)
         return self.extract_message(parsed_message)
 
-    def verify_message(self, message):
+    def verify_message(self, message: bytes) -> bytes:
         """Verify the status of the message.
 
         Raises NiaException if the status is not OK.
@@ -66,7 +67,7 @@ class NiaMessage(ABC):
         return response
 
 
-class ZtotozneniMessage(NiaMessage):
+class IdentificationMessage(NiaMessage):
     """Message for TR_ZTOTOZNENI."""
 
     request_namespace = 'urn:nia.ztotozneni/request:v3'

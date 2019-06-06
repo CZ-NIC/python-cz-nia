@@ -16,4 +16,5 @@ setup(name='cz_nia',
       packages=find_packages(),
       install_requires=['zeep @ git+https://github.com/tpazderka/python-zeep.git@signed_parts',
                         'xmlsec'],
-      extras_require={'quality': ['isort', 'flake8', 'pydocstyle']})
+      extras_require={'quality': ['isort', 'flake8', 'pydocstyle', 'mypy'],
+                      'tests': ['responses']})

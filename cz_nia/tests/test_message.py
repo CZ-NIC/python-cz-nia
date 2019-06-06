@@ -5,7 +5,7 @@ from unittest import TestCase
 from lxml.etree import QName
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import ZtotozneniMessage
+from cz_nia.message import IdentificationMessage
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope"> \
@@ -14,8 +14,8 @@ BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              </bodies>'
 
 
-class TestZtotozneniMessage(TestCase):
-    """Unittests for Ztotozneni message."""
+class TestIdentificationMessage(TestCase):
+    """Unittests for IdentificationMessage."""
 
     def test_parse_error(self):
         content = '<ZtotozneniResponse xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
@@ -24,9 +24,9 @@ class TestZtotozneniMessage(TestCase):
                    <Status>Error</Status> \
                    <Detail>Error parsing request</Detail> \
                    </ZtotozneniResponse>'
-        response = BASE_BODY.format(CONTENT=content)
+        response = BASE_BODY.format(CONTENT=content).encode()
         with self.assertRaisesRegexp(NiaException, 'Error parsing request'):
-            ZtotozneniMessage('').unpack(response)
+            IdentificationMessage('').unpack(response)
 
     def test_parse_success(self):
         content = '<ZtotozneniResponse xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
@@ -35,12 +35,12 @@ class TestZtotozneniMessage(TestCase):
                    <Status>OK</Status> \
                    <Pseudonym>this is pseudonym</Pseudonym> \
                    </ZtotozneniResponse>'
-        response = BASE_BODY.format(CONTENT=content)
-        self.assertEqual(ZtotozneniMessage('').unpack(response), 'this is pseudonym')
+        response = BASE_BODY.format(CONTENT=content).encode()
+        self.assertEqual(IdentificationMessage('').unpack(response), 'this is pseudonym')
 
     def test_pack(self):
-        message = ZtotozneniMessage({'first_name': 'Eda', 'last_name': 'Tester',
-                                     'birth_date': datetime.date(2000, 5, 1)}).pack()
+        message = IdentificationMessage({'first_name': 'Eda', 'last_name': 'Tester',
+                                         'birth_date': datetime.date(2000, 5, 1)}).pack()
         namespace = 'urn:nia.ztotozneni/request:v3'
         expected = {
             QName(namespace, 'Jmeno'): 'Eda',
