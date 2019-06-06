@@ -47,10 +47,10 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> str:
     token = AnyObject(token_type, token_type(ASSERTION))
     # Prepare request
     request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
-    request = AnyObject(request_type, request_type(QName(NiaNamespaces.WS_TRUST.value, 'Issue')))
+    request = AnyObject(request_type, request_type(NiaNamespaces.WS_TRUST.value + '/Issue'))
     # Prepare key
     key_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'KeyType'))
-    key = AnyObject(key_type, key_type(QName(NiaNamespaces.WS_TRUST.value, 'SymmetricKey')))
+    key = AnyObject(key_type, key_type(NiaNamespaces.WS_TRUST.value + '/SymmetricKey'))
     # Prepare WSA header
     applies = _get_wsa_header(client, settings.FEDERATION_ADDRESS)
     # Call the service
@@ -68,7 +68,7 @@ def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion
                     settings=SETTINGS, transport=transport)
     # prepare request
     request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
-    request = AnyObject(request_type, request_type(QName(NiaNamespaces.WS_TRUST.value, 'Issue')))
+    request = AnyObject(request_type, request_type(NiaNamespaces.WS_TRUST.value + '/Issue'))
     # Prepare WSA header
     applies = _get_wsa_header(client, settings.PUBLIC_ADDRESS)
     # Call the service
