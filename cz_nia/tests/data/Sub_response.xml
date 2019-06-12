@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+  <s:Header>
+    <a:Action s:mustUnderstand="1">http://www.government-gateway.cz/wcf/submission/IBusinessTransactions/SubmitResponse</a:Action>
+    <a:RelatesTo>urn:uuid:a941b0b9-ef9b-428d-86ec-6ed819ab2584</a:RelatesTo>
+    <o:Security xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" s:mustUnderstand="1">
+      <u:Timestamp u:Id="_0">
+        <u:Created>2018-10-04T12:14:35.772Z</u:Created>
+        <u:Expires>2018-10-04T12:19:35.772Z</u:Expires>
+      </u:Timestamp>
+    </o:Security>
+  </s:Header>
+  <s:Body>
+    <SubmitResponse xmlns="http://www.government-gateway.cz/wcf/submission">
+      <SubmitResult xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <BodyBase64XML>PGJvZGllcyB4bWxucz0iaHR0cDovL3d3dy5nb3Zlcm5tZW50LWdhdGV3YXkuY3ovd2NmL3N1Ym1pc3Npb24iPg0KICA8Qm9keSBJZD0iMCIgeG1sbnM9Imh0dHA6Ly93d3cuZ292dGFsay5nb3YudWsvQ00vZW52ZWxvcGUiPg0KICAgIDxadG90b3puZW5pUmVzcG9uc2UgeG1sbnM9InVybjpuaWEuenRvdG96bmVuaS9yZXNwb25zZTp2NCIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSI+DQogICAgICA8UHNldWRvbnltPjFkNzFmZjFhLWQ3MzItNDQ4NS1hOGRjLWFkNGM0MmE4YTczOTwvUHNldWRvbnltPg0KICAgICAgPFN0YXR1cz5PSzwvU3RhdHVzPg0KICAgICAgPERldGFpbCAvPg0KICAgICAgPEptZW5vPkRBTklFTDwvSm1lbm8+DQogICAgICA8UHJpam1lbmk+S0HFoFDDgVJFSzwvUHJpam1lbmk+DQogICAgICA8QWRyZXNhUG9ieXR1PjQ4MjUwNTU8L0FkcmVzYVBvYnl0dT4NCiAgICAgIDxEYXR1bU5hcm96ZW5pPjE5ODgtMDUtMjE8L0RhdHVtTmFyb3plbmk+DQogICAgPC9adG90b3puZW5pUmVzcG9uc2U+DQogIDwvQm9keT4NCjwvYm9kaWVzPg==</BodyBase64XML>
+        <Class>TR_ZTOTOZNENI</Class>
+        <CorrelationID>F6F1004EBE5F401F90535F9D2176835A</CorrelationID>
+        <Function>submit</Function>
+        <GatewayTimestamp>2018-10-04T12:14:35.7722706Z</GatewayTimestamp>
+        <GovTalkErrors i:nil="true"/>
+        <PollInterval>PT20S</PollInterval>
+        <Qualifier>response</Qualifier>
+        <GatewayAdditions i:nil="true"/>
+      </SubmitResult>
+    </SubmitResponse>
+  </s:Body>
+</s:Envelope>

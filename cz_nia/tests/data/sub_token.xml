@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion" xmlns:trust="http://docs.oasis-open.org/ws-sx/ws-trust/200512" xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" MajorVersion="1" MinorVersion="1" AssertionID="_685a595d-fd20-426e-94dd-a9f101a37854" Issuer="Microsoft CGG Federated Provider" IssueInstant="2018-10-05T13:12:21.429Z">
+  <saml:Conditions NotBefore="2018-10-05T13:12:21.169Z" NotOnOrAfter="2018-10-05T14:12:21.169Z">
+    <saml:AudienceRestrictionCondition>
+      <saml:Audience>https://tnia.eidentita.cz/ws/submission/public.svc/token</saml:Audience>
+    </saml:AudienceRestrictionCondition>
+  </saml:Conditions>
+  <saml:AttributeStatement>
+    <saml:Subject>
+      <saml:SubjectConfirmation>
+        <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:holder-of-key</saml:ConfirmationMethod>
+        <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+          <trust:BinarySecret>nJwenjYjpm6avqoMU9liAqXOh+1RSOjFOYKWntJQt/U=</trust:BinarySecret>
+        </KeyInfo>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="profileid" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>0000000387537855</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="profilestate" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>Active</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="profiletype" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>Agent</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="idprealm" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>urn:microsoft:cgg2010:ipsts:certificate</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="name" AttributeNamespace="http://schemas.xmlsoap.org/ws/2005/05/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:ipsts:certificate">
+      <saml:AttributeValue>NIAIdP-CZNIC01</saml:AttributeValue>
+      <saml:AttributeValue>NIAIdP-CZNIC01</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="agentassigneduniqueidentifier" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>urn:moris:idp:cznic</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="agentapproved" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>True</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute xmlns:a="http://schemas.xmlsoap.org/ws/2009/09/identity/claims" AttributeName="profileapproved" AttributeNamespace="http://schemas.microsoft.com/cgg/2010/identity/claims" a:OriginalIssuer="urn:microsoft:cgg2010:fpsts">
+      <saml:AttributeValue>True</saml:AttributeValue>
+    </saml:Attribute>
+  </saml:AttributeStatement>
+  <saml:AuthenticationStatement AuthenticationMethod="urn:oasis:names:tc:SAML:1.0:am:unspecified" AuthenticationInstant="2018-10-05T13:12:21.000Z">
+    <saml:Subject>
+      <saml:SubjectConfirmation>
+        <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:holder-of-key</saml:ConfirmationMethod>
+        <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+          <trust:BinarySecret>nJwenjYjpm6avqoMU9liAqXOh+1RSOjFOYKWntJQt/U=</trust:BinarySecret>
+        </KeyInfo>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+  </saml:AuthenticationStatement>
+  <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <SignedInfo>
+      <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+      <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+      <Reference URI="#_685a595d-fd20-426e-94dd-a9f101a37854">
+        <Transforms>
+          <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+          <Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        </Transforms>
+        <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+        <DigestValue>yaiuhWwiQus+km5Xt15Iw0S2A1ZIuaKY0khN8vk2uKA=</DigestValue>
+      </Reference>
+    </SignedInfo>
+    <SignatureValue>bld3NBifZpbYB5i8gFcwT6gOYfIJ6IsNAE3hqW/2CbgoCUXdgDgL7oEuaS3Ezg6GvfpX8UPpDgWcTmZGRyazWcpSKYmcEZReL+EwpSaSkff6+xiDHBnBYcGgDOc9q4wlZemlbsRXWl0lGSX+StEaUHuPwxEl1KK+GRaLjmz5iUDFnEVgDqwIDdEQNXxyvz2p5+8LYKieG0cCQk4JD8e2ni5Ew1Ufowz2Gv3fiUMm124q+Wx3Q33U0qe/F88bsTdjBV2hWfXYCqqY7GsYRi3HuT9JyqFcTBCzMb+MpMyy55RQqXQtfBd2afcTk6GrJR4vEVfoOb/wxi3Arls/Zje7sw==</SignatureValue>
+    <KeyInfo>
+      <X509Data>
+        <X509Certificate>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</X509Certificate>
+      </X509Data>
+    </KeyInfo>
+  </Signature>
+</saml:Assertion>

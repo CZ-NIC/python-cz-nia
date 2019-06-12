@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+  <s:Header>
+    <a:Action s:mustUnderstand="1">http://www.government-gateway.cz/wcf/submission/IBusinessTransactions/SubmitResponse</a:Action>
+    <a:RelatesTo>urn:uuid:f13ad64a-ada6-4133-9d02-42c1a04f7070</a:RelatesTo>
+    <o:Security xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" s:mustUnderstand="1">
+      <u:Timestamp u:Id="_0">
+        <u:Created>2018-10-04T12:59:16.370Z</u:Created>
+        <u:Expires>2018-10-04T13:04:16.370Z</u:Expires>
+      </u:Timestamp>
+    </o:Security>
+  </s:Header>
+  <s:Body>
+    <SubmitResponse xmlns="http://www.government-gateway.cz/wcf/submission">
+      <SubmitResult xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <BodyBase64XML>PGJvZGllcyB4bWxucz0iaHR0cDovL3d3dy5nb3Zlcm5tZW50LWdhdGV3YXkuY3ovd2NmL3N1Ym1pc3Npb24iPg0KICA8Qm9keSBJZD0iMCIgeG1sbnM9Imh0dHA6Ly93d3cuZ292dGFsay5nb3YudWsvQ00vZW52ZWxvcGUiPg0KICAgIDxadG90b3puZW5pUmVzcG9uc2UgeG1sbnM9InVybjpuaWEuenRvdG96bmVuaS9yZXNwb25zZTp2NCIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSI+DQogICAgICA8U3RhdHVzPkVycm9yPC9TdGF0dXM+DQogICAgICA8RGV0YWlsPklTWlIgcmV0dXJuZWQgemVybyBBSUZPczwvRGV0YWlsPg0KICAgICAgPFN0YXR1c0lTWlI+DQogICAgICAgIDxWeXNsZWRla0tvZD5WQVJPVkFOSTwvVnlzbGVkZWtLb2Q+DQogICAgICAgIDxWeXNsZWRla1N1YktvZD5aQVpOQU1ORU5BTEVaRU48L1Z5c2xlZGVrU3ViS29kPg0KICAgICAgICA8VnlzbGVkZWtQb3Bpcz5DSFlCQV8wMDEwOiBWc3R1cG7DrSBrb21iaW5hY2kgw7pkYWrFryBuZW9kcG92w61kw6Egxb7DoWRuw70gesOhem5hbS48L1Z5c2xlZGVrUG9waXM+DQogICAgICA8L1N0YXR1c0lTWlI+DQogICAgPC9adG90b3puZW5pUmVzcG9uc2U+DQogIDwvQm9keT4NCjwvYm9kaWVzPg==</BodyBase64XML>
+        <Class>TR_ZTOTOZNENI</Class>
+        <CorrelationID>4139368114A841C29ABF49BBFBD9568F</CorrelationID>
+        <Function>submit</Function>
+        <GatewayTimestamp>2018-10-04T12:59:16.3709997Z</GatewayTimestamp>
+        <GovTalkErrors i:nil="true"/>
+        <PollInterval>PT20S</PollInterval>
+        <Qualifier>response</Qualifier>
+        <GatewayAdditions i:nil="true"/>
+      </SubmitResult>
+    </SubmitResponse>
+  </s:Body>
+</s:Envelope>

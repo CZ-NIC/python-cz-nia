@@ -1,4 +1,4 @@
-"""CZ_NIA applocation settings wrapper."""
+"""CZ_NIA application settings wrapper."""
 
 
 class CzNiaAppSettings(object):
