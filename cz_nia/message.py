@@ -41,7 +41,7 @@ class NiaMessage(ABC):
         """Pack the message containing data."""
 
     @abstractmethod
-    def extract_message(self, message: bytes) -> bytes:
+    def extract_message(self, message: str) -> str:
         """Extract relevant data from the message."""
 
     @property
@@ -49,12 +49,12 @@ class NiaMessage(ABC):
         """Return namespace map for the message."""
         return {'gov': self.govtalk_namespace, 'nia': self.response_namespace}
 
-    def unpack(self, response: bytes) -> bytes:
+    def unpack(self, response: bytes) -> str:
         """Unpack the data from the response."""
         parsed_message = self.verify_message(response)
         return self.extract_message(parsed_message)
 
-    def verify_message(self, message: bytes) -> bytes:
+    def verify_message(self, message: bytes) -> str:
         """Verify the status of the message.
 
         Raises NiaException if the status is not OK.

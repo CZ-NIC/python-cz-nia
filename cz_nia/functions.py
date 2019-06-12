@@ -1,9 +1,9 @@
 """Views for communication with NIA."""
 from base64 import b64decode
 from enum import Enum, unique
-from typing import Dict
+from typing import Any, Dict
 
-from lxml.etree import QName
+from lxml.etree import Element, QName
 from zeep import Client, Settings
 from zeep.cache import SqliteCache
 from zeep.exceptions import Error
@@ -12,7 +12,7 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import NiaMessage, IdentificationMessage
+from cz_nia.message import IdentificationMessage, NiaMessage
 from cz_nia.settings import CzNiaAppSettings
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
@@ -36,7 +36,7 @@ def _get_wsa_header(client: Client, address: str) -> AnyObject:
     return AnyObject(applies_type, applies_type(_value_1=reference))
 
 
-def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> str:
+def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
     """Call IPSTS (Identity provider) service and return the assertion."""
     client = Client(settings.IDENTITY_WSDL,
                     wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
@@ -62,7 +62,7 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> str:
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
-def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion: str) -> str:
+def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion: Element) -> Element:
     """Call FPSTS (Federation provider) service and return the assertion."""
     client = Client(settings.FEDERATION_WSDL, wsse=SAMLTokenSignature(assertion),
                     settings=SETTINGS, transport=transport)
@@ -97,7 +97,7 @@ def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion
     return b64decode(response.BodyBase64XML)
 
 
-def get_pseudonym(settings: CzNiaAppSettings, user_data: Dict[str, str]):
+def get_pseudonym(settings: CzNiaAppSettings, user_data: Dict[str, Any]) -> str:
     """Get pseudonym from NIA servers for given user data."""
     transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
                           timeout=settings.TRANSPORT_TIMEOUT)
