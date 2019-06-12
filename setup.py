@@ -14,5 +14,6 @@ setup(name='cz_nia',
       long_description_content_type='text/markdown',
       python_requires='~=3.5',
       packages=find_packages(),
-      install_requires=['zeep', 'xmlsec'],
+      install_requires=['zeep @ git+https://github.com/tpazderka/python-zeep.git@signed_parts',
+                        'xmlsec'],
       extras_require={'quality': ['isort', 'flake8', 'pydocstyle']})
