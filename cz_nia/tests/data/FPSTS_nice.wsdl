@@ -57,11 +57,11 @@
     </wsp:ExactlyOne>
   </wsp:Policy>
   <wsdl:types>
-    <!--VZIMA: Import ws-trust schema-->
+    <!-- Import ws-trust schema which is missing and not defined anywhere-->
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:import namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512" schemaLocation="ws-trust-1.3.xsd" />
     </xs:schema>
-    <!--VZIMA: End import -->
+    <!-- End import -->
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/Message" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/Message">
       <xs:complexType name="MessageBody">
         <xs:sequence>
@@ -72,7 +72,7 @@
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trust="http://docs.oasis-open.org/ws-sx/ws-trust/200512" elementFormDefault="qualified" targetNamespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
       <xs:element name="RequestSecurityToken" type="trust:RequestSecurityTokenType"/>
       <xs:complexType name="RequestSecurityTokenType">
-        <!--VZIMA: Switch choices to sequence -->
+        <!-- Switch choices to sequence - zeep is unable to construct message with this WSDL -->
         <!--
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>
@@ -81,7 +81,7 @@
         <xs:sequence>
           <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>
         </xs:sequence>
-        <!--VZIMA: End -->
+        <!-- End -->
         <xs:attribute name="Context" type="xs:anyURI" use="optional"/>
         <xs:anyAttribute namespace="##other" processContents="lax"/>
       </xs:complexType>

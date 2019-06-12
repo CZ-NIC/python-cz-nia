@@ -41,7 +41,7 @@ class NiaMessage(ABC):
         """Pack the message containing data."""
 
     @abstractmethod
-    def extract_message(self, message: str) -> str:
+    def extract_message(self, message: Element) -> str:
         """Extract relevant data from the message."""
 
     @property
@@ -75,7 +75,7 @@ class IdentificationMessage(NiaMessage):
     response_class = 'ZtotozneniResponse'
     action = 'TR_ZTOTOZNENI'
 
-    def pack(self):
+    def pack(self) -> Element:
         """Prepare the ZTOTOZNENI message with user data."""
         id_request = Element(QName(self.request_namespace, 'ZtotozneniRequest'))
         name = SubElement(id_request, QName(self.request_namespace, 'Jmeno'))
@@ -88,6 +88,6 @@ class IdentificationMessage(NiaMessage):
         compare_type.text = 'diakritika'
         return id_request
 
-    def extract_message(self, response):
+    def extract_message(self, response: Element) -> str:
         """Get pseudonym from the message."""
         return response.find('nia:Pseudonym', namespaces=self.get_namespace_map).text
