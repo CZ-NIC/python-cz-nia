@@ -75,7 +75,7 @@ class NiaMessage(ABC):
         parsed_message = self.verify_message(response)
         return self.extract_message(parsed_message)
 
-    def verify_message(self, message: bytes) -> str:
+    def verify_message(self, message: bytes) -> Element:
         """Verify the status of the message.
 
         Raises NiaException if the status is not OK.
