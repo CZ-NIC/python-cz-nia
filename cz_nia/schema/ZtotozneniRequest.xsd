@@ -1,0 +1,344 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns="urn:nia.ztotozneni/request:v3" targetNamespace="urn:nia.ztotozneni/request:v3" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="ZtotozneniRequest" nillable="true" type="ZtotozneniRequest" >
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Request transakce TR_ZTOTOZNENI
+        Transakce zototožňuje vůči ISZR voláním služeb E04, E05 nebo E20, podle zadaných vstupních údajů.
+        E04 pro ověření pomocí BOK a Dokladu.
+        E20 pro ověření a získání názvu subjektu podle zadaného IČO.
+        E05 pro ověření podle zadané kombinace údajů
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name="ZtotozneniRequest">
+    <xs:sequence>
+      <xs:element name="AdresaPobytu" type="AdresaPobytuType" nillable="true" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Adresa pobytu dle ISZR
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="DatumNarozeni" type="DatumNarozeniType" nillable="true" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Datum narození ztotožňovaného subjektu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Jmeno" type="JmenoType" nillable="true" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Jméno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="MistoNarozeni" type="MistoNarozeniType" nillable="true" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Místo narození
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Prijmeni" type="PrijmeniType" nillable="true" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Příjmení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Doklad" type="DokladType" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Doklad - číslo a typ
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Obcanstvi" type="ObcanstviType" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Občanství
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="TypPorovnani" type="TypPorovnaniType" minOccurs="0" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Typ porovnání
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ZpusobOvereni" type="ZpusobOvereniType" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Způsob ověření
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ICO" type="xs:int" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            IČO v případě ověření přes E20
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="BOK" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            BOK v případě ověření přes E04
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="0"/>
+            <xs:maxLength value="255"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Uri" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Uri žadatele o ztotožnení subjektu
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="0"/>
+            <xs:maxLength value="500"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="AgendaZadostId" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            ID žádosti vygenerované žadatelem
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="0"/>
+            <xs:maxLength value="255"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="ProfileId" minOccurs="0" maxOccurs="1" >
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            ProfileId
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="0"/>
+            <xs:maxLength value="255"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="AdresaPobytuType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Adresa místa pobytu v ČR.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="KodAdresniMistoType" />
+  </xs:simpleType>
+  <xs:simpleType name="KodAdresniMistoType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Identifikátor adresního místa v RUAIN.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:int">
+      <xs:minExclusive value="0"/>
+      <xs:maxExclusive value="999999999"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DatumNarozeniType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Datum narození fyzické osoby.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:date" />
+  </xs:simpleType>
+  <xs:simpleType name="JmenoType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Jméno popřípadě jména fyzické osoby.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="NonEmptyNormStringType">
+      <xs:maxLength value="100" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="NonEmptyNormStringType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Neprázdný řetězec jako základ dat, kde není akceptován prázdný údaj a nejsou akceptovány prázdne znaky na začátku a konci.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[\S]+.*[\S]+"/>
+      <xs:pattern value="[\S]{1}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="MistoNarozeniType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Místo a okres narození v ČR nebo místo a stát narození.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="NarozeniCr" type="MistoCrType">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">Místo narození v ČR.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="NarozeniSvet" type="MistoSvetType">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">Místo narození mimo ČR.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="MistoCrType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Odkaz do RUAIN, kód obce nebo pražského obvodu.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="AdresniLokalitaType">
+        <xs:attribute name="obec" type="xs:boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="AdresniLokalitaType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Identifikátor adresní jednotky (obec nebo pražský obvod) v RUAIN.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:int">
+      <xs:minExclusive value="1"/>
+      <xs:maxExclusive value="999999"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="MistoSvetType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Místo a stát pro narození a úmrtí mimo ČR.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="MistoSvet">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="100" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Stat" type="KodStatType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="KodStatType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Kód státu dle číselníku zemí http://www.czso.cz/csu/klasifik.nsf/i/ciselnik_zemi_%28czem%29. </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:int">
+      <xs:totalDigits value="3"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="PrijmeniType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Příjmení fyzické osoby.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="NonEmptyNormStringType">
+      <xs:maxLength value="100" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="DokladType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Elektronicky čitelný doklad.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Cislo" type="DokladCisloType" />
+      <xs:element name="Druh" type="DokladDruhType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="DokladCisloType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Číslo elektronicky čitelného dokladu.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="NonEmptyNormStringType">
+      <xs:maxLength value="9" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DokladDruhType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Druh elektronicky čitelného dokladu.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="NonEmptyNormStringType">
+      <xs:maxLength value="2" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ObcanstviType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">Státní občanství.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="KodStatType" />
+  </xs:simpleType>
+  <xs:simpleType name="TypPorovnaniType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Indikátor, jaký typ porovnání hledaných dat vůči DB
+        je nutno
+        použít.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="striktni">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Respektování diakritiky a velikosti písmen.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="diakritika">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Respektování diakritiky bez ohledu na velikost písmen.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ascii">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Nerespektování diakritiky a velikosti písmen.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ZpusobOvereniType">
+    <xs:annotation>
+      <xs:documentation xml:lang="cs">
+        Indikátor, jaký způsob ověření je požadován
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="JmenoPrijmeniAdresaPobytu">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Jméno, Příjmení, Adresa pobytu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="JmenoPrijmeniDatumNarozeni">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Jméno, Příjmení, Datum narození
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Doklad">
+        <xs:annotation>
+          <xs:documentation xml:lang="cs">
+            Číslo a typ dokladu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
