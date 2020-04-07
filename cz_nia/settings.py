@@ -24,3 +24,5 @@ class CzNiaAppSettings(object):
         # Endpoint adresses
         self.FEDERATION_ADDRESS = settings['federation_address']
         self.PUBLIC_ADDRESS = settings['public_address']
+        # Debug
+        self.DEBUG = settings.get('debug', False)

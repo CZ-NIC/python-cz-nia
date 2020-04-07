@@ -3,11 +3,12 @@ from base64 import b64decode
 from enum import Enum, unique
 from typing import Any, Dict
 
-from lxml.etree import Element, QName
+from lxml.etree import Element, QName, tostring
 from zeep import Client, Settings
 from zeep.cache import SqliteCache
 from zeep.exceptions import Error
 from zeep.ns import WSA, WSP
+from zeep.plugins import HistoryPlugin
 from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
@@ -28,6 +29,17 @@ class NiaNamespaces(str, Enum):
     SUBMISSION = 'http://www.government-gateway.cz/wcf/submission'
 
 
+def _log_history(history: HistoryPlugin, settings: CzNiaAppSettings, endpoint: str, success: bool = True):
+    """Print debug info from history plugin."""
+    if settings.DEBUG:
+        if not success:
+            print('Exception in {} endpoint:'.format(endpoint))
+        print('Message sent to {} endpoint:'.format(endpoint))
+        print(tostring(history.last_sent['envelope'], pretty_print=True, encoding='unicode'))
+        print('Message received from {} endpoint:'.format(endpoint))
+        print(tostring(history.last_received['envelope'], pretty_print=True, encoding='unicode'))
+
+
 def _get_wsa_header(client: Client, address: str) -> AnyObject:
     """Get WSA header from the client."""
     applies_type = client.get_element(QName(WSP, 'AppliesTo'))
@@ -38,10 +50,15 @@ def _get_wsa_header(client: Client, address: str) -> AnyObject:
 
 def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
     """Call IPSTS (Identity provider) service and return the assertion."""
+    plugins = []
+    history = None
+    if settings.DEBUG:
+        history = HistoryPlugin()
+        plugins.append(history)
     client = Client(settings.IDENTITY_WSDL,
                     wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
                                          settings.PASSWORD),
-                    settings=SETTINGS, transport=transport)
+                    settings=SETTINGS, transport=transport, plugins=plugins)
     # Prepare token
     token_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'TokenType'))
     token = AnyObject(token_type, token_type(ASSERTION))
@@ -58,14 +75,21 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
     try:
         response = service.Trust13Issue(_value_1=[token, request, key, applies])
     except Error as err:
+        _log_history(history, settings, 'IPSTS', success=False)
         raise NiaException(err)
+    _log_history(history, settings, 'IPSTS')
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
 def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion: Element) -> Element:
     """Call FPSTS (Federation provider) service and return the assertion."""
+    plugins = []
+    history = None
+    if settings.DEBUG:
+        history = HistoryPlugin()
+        plugins.append(history)
     client = Client(settings.FEDERATION_WSDL, wsse=SAMLTokenSignature(assertion),
-                    settings=SETTINGS, transport=transport)
+                    settings=SETTINGS, transport=transport, plugins=plugins)
     # prepare request
     request_type = client.get_element(QName(NiaNamespaces.WS_TRUST.value, 'RequestType'))
     request = AnyObject(request_type, request_type(NiaNamespaces.WS_TRUST.value + '/Issue'))
@@ -76,14 +100,21 @@ def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion
     try:
         response = service.Trust13Issue(_value_1=[applies, request])
     except Error as err:
+        _log_history(history, settings, 'FPSTS', success=False)
         raise NiaException(err)
+    _log_history(history, settings, 'FPSTS')
     return response.RequestSecurityTokenResponse[0]['_value_1'][3]['_value_1']
 
 
 def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion, message: NiaMessage) -> bytes:
     """Call Submission service and return the body."""
+    plugins = []
+    history = None
+    if settings.DEBUG:
+        history = HistoryPlugin()
+        plugins.append(history)
     client = Client(settings.PUBLIC_WSDL, wsse=SAMLTokenSignature(assertion),
-                    settings=SETTINGS, transport=transport)
+                    settings=SETTINGS, transport=transport, plugins=plugins)
     # Prepare the Body
     bodies_type = client.get_type(QName(NiaNamespaces.SUBMISSION.value, 'ArrayOfBodyPart'))
     body_part_type = client.get_type(QName(NiaNamespaces.SUBMISSION.value, 'BodyPart'))
@@ -93,7 +124,9 @@ def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion
         response = service.Submit(message.action,
                                   bodies_type(body_part_type(Body={'_value_1': message.pack()})), '')
     except Error as err:
+        _log_history(history, settings, 'Submission', success=False)
         raise NiaException(err)
+    _log_history(history, settings, 'Submission')
     return b64decode(response.BodyBase64XML)
 
 
