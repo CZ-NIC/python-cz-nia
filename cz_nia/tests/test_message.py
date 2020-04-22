@@ -261,7 +261,8 @@ class TestNotificationMessage(TestCase):
         body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
         response = NotificationMessage(None).extract_message(body)
         self.assertEqual(response.notifications, [{'id': '132', 'pseudonym': 'some_pseudonym', 'source': 'ROBREF',
-                                                   'message': 'Zmena referencních údaju ROB.'}])
+                                                   'message': 'Zmena referencních údaju ROB.',
+                                                   'datetime': datetime.datetime(2017, 12, 7, 14, 41, 1, 787000)}])
         self.assertEqual(response.last_id, 133)
         self.assertTrue(response.more_notifications)
 
@@ -290,6 +291,7 @@ class TestNotificationMessage(TestCase):
         response = NotificationMessage(None).extract_message(body)
         self.assertEqual(response.notifications, [{'id': '132', 'pseudonym': 'some_pseudonym', 'source': 'ROBREF',
                                                    'message': 'Zmena referencních údaju ROB.',
+                                                   'datetime': datetime.datetime(2017, 12, 7, 14, 41, 1, 787000),
                                                    '_UnknownTag': 'something'}])
         self.assertEqual(response.last_id, 133)
         self.assertTrue(response.more_notifications)

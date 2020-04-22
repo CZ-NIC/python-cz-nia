@@ -209,6 +209,7 @@ class TestGetNotification(TestCase):
                           'id': '11612',
                           'pseudonym': 'ca8ff536-3d6c-42ce-a33f-c19e5377b6ab',
                           'message': 'Změna referenčních údajů ROB.',
+                          'datetime': datetime.datetime(2020, 4, 1, 7, 1, 4, 890000),
                           'address': '76210',
                           'given_name': 'JULIE',
                           'last_name': 'VALIHRACHOVÁ'})
@@ -216,11 +217,13 @@ class TestGetNotification(TestCase):
                          {'id': '11627',
                           'pseudonym': 'a12bc421-23df-4f1b-b896-3df6f23f2cf8',
                           'source': 'EVPROST',
-                          'message': 'Aktualizace stavu identifikátoru prostředku pro elektronickou identifikaci'})
+                          'message': 'Aktualizace stavu identifikátoru prostředku pro elektronickou identifikaci',
+                          'datetime': datetime.datetime(2020, 4, 1, 15, 9, 31, 693000)})
         self.assertEqual(notifications.notifications[7],
                          {'id': '11651',
                           'pseudonym': 'b0901628-4529-4382-b84f-5c649df0393c',
                           'source': 'ROBREF',
+                          'datetime': datetime.datetime(2020, 4, 5, 7, 0, 24, 30000),
                           'message': 'Změna referenčních údajů ROB.',
                           'address': '264',
                           'date_of_birth': '1981-09-13',

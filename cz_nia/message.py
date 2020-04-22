@@ -2,6 +2,7 @@
 import os
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from lxml.etree import Element, QName, SubElement, XMLSchema, fromstring, parse
@@ -221,6 +222,9 @@ class NotificationMessage(NiaMessage):
                 'pseudonym': notification.find('nia:Bsi', namespaces=self.get_namespace_map).text,
                 'source': notification.find('nia:Zdroj', namespaces=self.get_namespace_map).text,
                 'message': notification.find('nia:Text', namespaces=self.get_namespace_map).text,
+                'datetime': datetime.strptime(notification.find('nia:DatumACasNotifikace',
+                                                                namespaces=self.get_namespace_map).text,
+                                              '%Y-%m-%dT%H:%M:%S.%f'),
             }
             reference_data = notification.find('nia:ReferencniData', namespaces=self.get_namespace_map)
             if reference_data is not None:
