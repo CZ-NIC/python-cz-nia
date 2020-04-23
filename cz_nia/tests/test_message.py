@@ -5,7 +5,8 @@ from unittest import TestCase
 from lxml.etree import DocumentInvalid, Element, QName, SubElement, fromstring
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import ChangeAuthenticatorMessage, IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
+from cz_nia.message import (ChangeAuthenticatorMessage, IdentificationMessage, NiaMessage, NotificationMessage,
+                            WriteAuthenticatorMessage)
 
 BASE_BODY = '<bodies xmlns="http://www.government-gateway.cz/wcf/submission">\
              <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope"> \
@@ -205,3 +206,105 @@ class TestChangeAuthenticatorMessage(TestCase):
         self.assertEqual(message.nsmap.get(message.prefix), namespace)
         for child in message.iterchildren():
             self.assertEqual(child.text, expected[child.tag])
+
+
+class TestNotificationMessage(TestCase):
+    """Unittests for Notifikace message."""
+
+    def test_extract_message_error(self):
+        content = '<NotifikaceIdpResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+                   xmlns="urn:nia.notifikaceIdp/response:v1"> \
+                   <Status>Error</Status> \
+                   <Detail>General Error. See log for more details</Detail> \
+                   </NotifikaceIdpResponse>'
+        response = fromstring(BASE_BODY.format(CONTENT=content).encode())
+        body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
+        response = NotificationMessage(None).extract_message(body)
+        self.assertEqual(response.notifications, [])
+        self.assertIsNone(response.last_id)
+        self.assertFalse(response.more_notifications)
+
+    def test_parse_success_empty(self):
+        content = '<NotifikaceIdpResponse xmlns="urn:nia.notifikaceIdp/response:v1" \
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> \
+                   <Status>OK</Status> \
+                   <Detail>Nebyly nalezeny \xc5\xbe\xc3\xa1dn\xc3\xa9 notifikace</Detail> \
+                   <SeznamNotifikaceIdp /> \
+                   </NotifikaceIdpResponse>'
+        response = fromstring(BASE_BODY.format(CONTENT=content).encode())
+        body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
+        response = NotificationMessage(None).extract_message(body)
+        self.assertEqual(response.notifications, [])
+        self.assertIsNone(response.last_id)
+        self.assertFalse(response.more_notifications)
+
+    def test_parse_success_list(self):
+        content = '<NotifikaceIdpResponse xmlns="urn:nia.notifikaceIdp/response:v1" \
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> \
+                   <Status>OK</Status> \
+                   <SeznamNotifikaceIdp> \
+                   <NotifikaceIdp> \
+                   <NotifikaceIdpId>132</NotifikaceIdpId> \
+                   <Bsi>some_pseudonym</Bsi> \
+                   <DatumACasNotifikace>2017-12-07T14:41:01.787</DatumACasNotifikace> \
+                   <Zdroj>ROBREF</Zdroj> \
+                   <Text>Zmena referencních údaju ROB.</Text> \
+                   </NotifikaceIdp> \
+                   </SeznamNotifikaceIdp> \
+                   <NotifikaceIdpPosledniId>133</NotifikaceIdpPosledniId> \
+                   <ExistujiDalsiNotifikace>true</ExistujiDalsiNotifikace> \
+                   </NotifikaceIdpResponse>'
+        response = fromstring(BASE_BODY.format(CONTENT=content).encode())
+        body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
+        response = NotificationMessage(None).extract_message(body)
+        self.assertEqual(response.notifications, [{'id': '132', 'pseudonym': 'some_pseudonym', 'source': 'ROBREF',
+                                                   'message': 'Zmena referencních údaju ROB.',
+                                                   'datetime': datetime.datetime(2017, 12, 7, 14, 41, 1, 787000)}])
+        self.assertEqual(response.last_id, 133)
+        self.assertTrue(response.more_notifications)
+
+    def test_parse_success_unknown(self):
+        content = '<NotifikaceIdpResponse xmlns="urn:nia.notifikaceIdp/response:v1" \
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> \
+                   <Status>OK</Status> \
+                   <SeznamNotifikaceIdp> \
+                   <NotifikaceIdp> \
+                   <NotifikaceIdpId>132</NotifikaceIdpId> \
+                   <Bsi>some_pseudonym</Bsi> \
+                   <DatumACasNotifikace>2017-12-07T14:41:01.787</DatumACasNotifikace> \
+                   <Zdroj>ROBREF</Zdroj> \
+                   <Text>Zmena referencních údaju ROB.</Text> \
+                   <ReferencniData> \
+                   <UnknownTag>something</UnknownTag> \
+                   </ReferencniData> \
+                   </NotifikaceIdp> \
+                   </SeznamNotifikaceIdp> \
+                   <NotifikaceIdpPosledniId>133</NotifikaceIdpPosledniId> \
+                   <ExistujiDalsiNotifikace>true</ExistujiDalsiNotifikace> \
+                   </NotifikaceIdpResponse>'
+        response = fromstring(BASE_BODY.format(CONTENT=content).encode())
+        body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
+        response = NotificationMessage(None).extract_message(body)
+        self.assertEqual(response.notifications, [{'id': '132', 'pseudonym': 'some_pseudonym', 'source': 'ROBREF',
+                                                   'message': 'Zmena referencních údaju ROB.',
+                                                   'datetime': datetime.datetime(2017, 12, 7, 14, 41, 1, 787000),
+                                                   '_UnknownTag': 'something'}])
+        self.assertEqual(response.last_id, 133)
+        self.assertTrue(response.more_notifications)
+
+    def test_create_message(self):
+        message = NotificationMessage(None).create_message()
+        namespace = 'urn:nia.notifikaceIdp/request:v1'
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        self.assertEqual(len(message.getchildren()), 0)
+
+    def test_pack_id(self):
+        message = NotificationMessage({'id': 42}).create_message()
+        namespace = 'urn:nia.notifikaceIdp/request:v1'
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        self.assertEqual(len(message.getchildren()), 1)
+        self.assertEqual(message.find('nia:NotifikaceIdpId', namespaces={'nia': namespace}).text, '42')

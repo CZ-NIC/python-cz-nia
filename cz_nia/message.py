@@ -1,7 +1,9 @@
 """Messages for communication with NIA."""
 import os
 from abc import ABC, abstractmethod
-from typing import Dict
+from collections import namedtuple
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from lxml.etree import Element, QName, SubElement, XMLSchema, fromstring, parse
 
@@ -48,7 +50,7 @@ class NiaMessage(ABC):
         """Create the message containing data."""
 
     @abstractmethod
-    def extract_message(self, message: Element) -> str:
+    def extract_message(self, message: Element) -> Any:
         """Extract relevant data from the message."""
 
     @property
@@ -70,7 +72,7 @@ class NiaMessage(ABC):
         self.validate(message)
         return message
 
-    def unpack(self, response: bytes) -> str:
+    def unpack(self, response: bytes) -> Any:
         """Unpack the data from the response."""
         parsed_message = self.verify_message(response)
         return self.extract_message(parsed_message)
@@ -181,3 +183,64 @@ class ChangeAuthenticatorMessage(NiaMessage):
     def extract_message(self, response):
         """Do nothing."""
         return None
+
+
+NotificationResult = namedtuple('NotificationResult', 'notifications last_id more_notifications')
+
+NOTIFICATION_MAP = {
+    'AdresaPobytu': 'address',
+    'Jmeno': 'given_name',
+    'Prijmeni': 'last_name',
+    'DatumNarozeni': 'date_of_birth',
+}
+
+
+class NotificationMessage(NiaMessage):
+    """Message for TR_NOTIFIKACE_IDP."""
+
+    request_namespace = 'urn:nia.notifikaceIdp/request:v1'
+    response_namespace = 'urn:nia.notifikaceIdp/response:v1'
+    response_class = 'NotifikaceIdpResponse'
+    action = 'TR_NOTIFIKACE_IDP'
+    xmlschema_definition = 'NotifikaceIdpRequest.xsd'
+
+    def create_message(self) -> Element:
+        """Prepare the NOTIFIKACE message."""
+        id_request = Element(QName(self.request_namespace, 'NotifikaceIdpRequest'))
+        if self.data is not None:
+            idp_id = SubElement(id_request, QName(self.request_namespace, 'NotifikaceIdpId'))
+            idp_id.text = str(self.data.get('id'))
+        return id_request
+
+    def extract_message(self, response) -> NotificationResult:
+        """Get notifications from the message."""
+        notification_list = []
+        notifications = response.findall('nia:SeznamNotifikaceIdp/nia:NotifikaceIdp', namespaces=self.get_namespace_map)
+        for notification in notifications:
+            content = {
+                'id': notification.find('nia:NotifikaceIdpId', namespaces=self.get_namespace_map).text,
+                'pseudonym': notification.find('nia:Bsi', namespaces=self.get_namespace_map).text,
+                'source': notification.find('nia:Zdroj', namespaces=self.get_namespace_map).text,
+                'message': notification.find('nia:Text', namespaces=self.get_namespace_map).text,
+                'datetime': datetime.strptime(notification.find('nia:DatumACasNotifikace',
+                                                                namespaces=self.get_namespace_map).text,
+                                              '%Y-%m-%dT%H:%M:%S.%f'),
+            }
+            reference_data = notification.find('nia:ReferencniData', namespaces=self.get_namespace_map)
+            if reference_data is not None:
+                for child in reference_data.iterchildren():
+                    tag = QName(child.tag).localname
+                    content[NOTIFICATION_MAP.get(tag, '_' + tag)] = child.text
+            notification_list.append(content)
+        last_id_node = response.find('nia:NotifikaceIdpPosledniId', namespaces=self.get_namespace_map)
+        if last_id_node is not None:
+            last_id = int(last_id_node.text)  # type: Optional[int]
+        else:
+            last_id = None
+        more_notifications_node = response.find('nia:ExistujiDalsiNotifikace', namespaces=self.get_namespace_map)
+        if more_notifications_node is not None:
+            more_notifications = more_notifications_node.text.lower() == 'true'
+        else:
+            more_notifications = False
+        return NotificationResult(notifications=notification_list, last_id=last_id,
+                                  more_notifications=more_notifications)

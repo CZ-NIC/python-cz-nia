@@ -13,7 +13,8 @@ from zeep.transports import Transport
 from zeep.xsd import AnyObject
 
 from cz_nia.exceptions import NiaException
-from cz_nia.message import ChangeAuthenticatorMessage, IdentificationMessage, NiaMessage, WriteAuthenticatorMessage
+from cz_nia.message import (ChangeAuthenticatorMessage, IdentificationMessage, NiaMessage, NotificationMessage,
+                            NotificationResult, WriteAuthenticatorMessage)
 from cz_nia.settings import CzNiaAppSettings
 from cz_nia.wsse.signature import BinarySignature, SAMLTokenSignature
 
@@ -161,5 +162,17 @@ def change_authenticator(settings: CzNiaAppSettings, data: Dict[str, str]):
     sub_assertion = _call_federation(settings, transport, fp_assertion)
     # Create the request
     message = ChangeAuthenticatorMessage(data)
+    body = _call_submission(settings, transport, sub_assertion, message)
+    return message.unpack(body)
+
+
+def get_notification(settings: CzNiaAppSettings, data: Dict[str, str] = None) -> NotificationResult:
+    """Get notifications."""
+    transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
+                          timeout=settings.TRANSPORT_TIMEOUT)
+    fp_assertion = _call_identity(settings, transport)
+    sub_assertion = _call_federation(settings, transport, fp_assertion)
+    # Create the request
+    message = NotificationMessage(data)
     body = _call_submission(settings, transport, sub_assertion, message)
     return message.unpack(body)

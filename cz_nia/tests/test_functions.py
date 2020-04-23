@@ -8,8 +8,8 @@ from zeep.transports import Transport
 
 import responses
 from cz_nia.exceptions import NiaException
-from cz_nia.functions import (_call_federation, _call_identity, _call_submission, change_authenticator, get_pseudonym,
-                              write_authenticator)
+from cz_nia.functions import (_call_federation, _call_identity, _call_submission, change_authenticator,
+                              get_notification, get_pseudonym, write_authenticator)
 from cz_nia.message import IdentificationMessage
 from cz_nia.settings import CzNiaAppSettings
 
@@ -187,3 +187,57 @@ class TestChangeAuthenticator(TestCase):
             with self.assertRaises(NiaException) as err:
                 change_authenticator(SETTINGS, data)
             self.assertEqual(str(err.exception), 'Required record does not exists')
+
+
+class TestGetNotification(TestCase):
+    """Unittests for get_notification."""
+
+    def test_get_notification(self):
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
+                     body=file_content('IPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/FPSTS/Issue.svc',
+                     body=file_content('FPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/WS/submission/Public.svc/token',
+                     body=file_content('notifications.xml'))
+            notifications = get_notification(SETTINGS)
+        self.assertFalse(notifications.more_notifications)
+        self.assertIsNone(notifications.last_id)
+        self.assertEqual(len(notifications.notifications), 12)
+        self.assertEqual(notifications.notifications[0],
+                         {'source': 'ROBREF',
+                          'id': '11612',
+                          'pseudonym': 'ca8ff536-3d6c-42ce-a33f-c19e5377b6ab',
+                          'message': 'Změna referenčních údajů ROB.',
+                          'datetime': datetime.datetime(2020, 4, 1, 7, 1, 4, 890000),
+                          'address': '76210',
+                          'given_name': 'JULIE',
+                          'last_name': 'VALIHRACHOVÁ'})
+        self.assertEqual(notifications.notifications[1],
+                         {'id': '11627',
+                          'pseudonym': 'a12bc421-23df-4f1b-b896-3df6f23f2cf8',
+                          'source': 'EVPROST',
+                          'message': 'Aktualizace stavu identifikátoru prostředku pro elektronickou identifikaci',
+                          'datetime': datetime.datetime(2020, 4, 1, 15, 9, 31, 693000)})
+        self.assertEqual(notifications.notifications[7],
+                         {'id': '11651',
+                          'pseudonym': 'b0901628-4529-4382-b84f-5c649df0393c',
+                          'source': 'ROBREF',
+                          'datetime': datetime.datetime(2020, 4, 5, 7, 0, 24, 30000),
+                          'message': 'Změna referenčních údajů ROB.',
+                          'address': '264',
+                          'date_of_birth': '1981-09-13',
+                          'given_name': 'KAREL',
+                          'last_name': 'MAJER'})
+
+    def test_get_notification_error(self):
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
+                     body=file_content('IPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/FPSTS/Issue.svc',
+                     body=file_content('FPSTS_response.xml'))
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/WS/submission/Public.svc/token',
+                     body=file_content('notification_error.xml'))
+            with self.assertRaises(NiaException) as err:
+                get_notification(SETTINGS)
+            self.assertEqual(str(err.exception), 'General Error. See log for more details')
