@@ -9,18 +9,20 @@ class CzNiaAppSettings(object):
 
         Raises KeyError if required setting is not provided.
         """
+        # FIXME: The explicit cast to `str` on file based settings must remain for as long as we support Python 3.5
+        #        since it cannot correctly handle PosixPath getting here
         # Settings for transport
         self.TRANSPORT_TIMEOUT = settings.get('transport_timeout', 10)
         self.CACHE_TIMEOUT = settings.get('cache_timeout', 3600)
-        self.CACHE_PATH = settings.get('cache_path', None)
+        self.CACHE_PATH = str(settings.get('cache_path', None))
         # Authentication settings
-        self.CERTIFICATE = settings['certificate']
-        self.KEY = settings['key']
+        self.CERTIFICATE = str(settings['certificate'])
+        self.KEY = str(settings['key'])
         self.PASSWORD = settings['password']
         # WSDL files
-        self.IDENTITY_WSDL = settings['identity_wsdl']
-        self.FEDERATION_WSDL = settings['federation_wsdl']
-        self.PUBLIC_WSDL = settings['public_wsdl']
+        self.IDENTITY_WSDL = str(settings['identity_wsdl'])
+        self.FEDERATION_WSDL = str(settings['federation_wsdl'])
+        self.PUBLIC_WSDL = str(settings['public_wsdl'])
         # Endpoint adresses
         self.FEDERATION_ADDRESS = settings['federation_address']
         self.PUBLIC_ADDRESS = settings['public_address']
