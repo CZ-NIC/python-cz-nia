@@ -20,8 +20,8 @@ def _signature_prepare(envelope, key, signature_method, digest_method, signature
     """
     soap_env = detect_soap_env(envelope)
     # Create the Signature node.
-    signature = xmlsec.template.create(envelope, xmlsec.Transform.EXCL_C14N,
-                                       signature_method or xmlsec.Transform.RSA_SHA1)
+    signature = xmlsec.template.create(envelope, xmlsec.Transform.EXCL_C14N,  # type: ignore
+                                       signature_method or xmlsec.Transform.RSA_SHA1)  # type: ignore
 
     # Add a KeyInfo node with X509Data child to the Signature. XMLSec will fill
     # in this template with the actual certificate details when it signs.
@@ -207,7 +207,10 @@ class BinarySignature(ZeepSignature):
 class SAMLTokenSignature(object):
     """Sign given SOAP envelope with WSSE sig using given HMAC key."""
 
-    def __init__(self, assertion, signature_method=xmlsec.Transform.HMAC_SHA1, digest_method=None):
+    def __init__(self,
+                 assertion,
+                 signature_method=xmlsec.Transform.HMAC_SHA1,  # type: ignore
+                 digest_method=None):
         """Parse necessary data from the assertion."""
         # XXX: For now we assume that the Assertion is lxml tree
         # XXX: This can change later...
@@ -220,13 +223,13 @@ class SAMLTokenSignature(object):
 
     def apply(self, envelope, headers, signatures=None):
         """Plugin entry point."""
-        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
+        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)  # type: ignore
         _sign_envelope_with_saml(envelope, key, self.signature_method, self.digest_method, self.assertion,
                                  self.assertion_id, signatures=signatures)
         return envelope, headers
 
     def verify(self, envelope):
         """Plugin exit point."""
-        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)
+        key = xmlsec.Key.from_binary_data(xmlsec.KeyData.HMAC, self.key_data)  # type: ignore
         _verify_envelope_with_key(envelope, key)
         return envelope
