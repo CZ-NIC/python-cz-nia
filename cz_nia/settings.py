@@ -14,7 +14,7 @@ class CzNiaAppSettings(object):
         # Settings for transport
         self.TRANSPORT_TIMEOUT = settings.get('transport_timeout', 10)
         self.CACHE_TIMEOUT = settings.get('cache_timeout', 3600)
-        self.CACHE_PATH = str(settings.get('cache_path', None))
+        self.CACHE_PATH = str(settings['cache_path']) if settings.get('cache_path') else None
         # Authentication settings
         self.CERTIFICATE = str(settings['certificate'])
         self.KEY = str(settings['key'])
