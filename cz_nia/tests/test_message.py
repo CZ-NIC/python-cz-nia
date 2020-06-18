@@ -266,6 +266,32 @@ class TestNotificationMessage(TestCase):
         self.assertEqual(response.last_id, 133)
         self.assertTrue(response.more_notifications)
 
+    def test_parse_success_no_micro(self):
+        content = '<NotifikaceIdpResponse xmlns="urn:nia.notifikaceIdp/response:v1" \
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> \
+                   <Status>OK</Status> \
+                   <SeznamNotifikaceIdp> \
+                   <NotifikaceIdp> \
+                   <NotifikaceIdpId>132</NotifikaceIdpId> \
+                   <Bsi>some_pseudonym</Bsi> \
+                   <DatumACasNotifikace>2017-12-07T14:41:01</DatumACasNotifikace> \
+                   <Zdroj>ROBREF</Zdroj> \
+                   <Text>Zmena referencních údaju ROB.</Text> \
+                   </NotifikaceIdp> \
+                   </SeznamNotifikaceIdp> \
+                   <NotifikaceIdpPosledniId>133</NotifikaceIdpPosledniId> \
+                   <ExistujiDalsiNotifikace>true</ExistujiDalsiNotifikace> \
+                   </NotifikaceIdpResponse>'
+        response = fromstring(BASE_BODY.format(CONTENT=content).encode())
+        body = response.find('gov:Body/nia:NotifikaceIdpResponse', namespaces=NotificationMessage('').get_namespace_map)
+        response = NotificationMessage(None).extract_message(body)
+        self.assertEqual(response.notifications, [{'id': '132', 'pseudonym': 'some_pseudonym', 'source': 'ROBREF',
+                                                   'message': 'Zmena referencních údaju ROB.',
+                                                   'datetime': datetime.datetime(2017, 12, 7, 14, 41, 1)}])
+        self.assertEqual(response.last_id, 133)
+        self.assertTrue(response.more_notifications)
+
     def test_parse_success_unknown(self):
         content = '<NotifikaceIdpResponse xmlns="urn:nia.notifikaceIdp/response:v1" \
                    xmlns:xsd="http://www.w3.org/2001/XMLSchema" \

@@ -217,14 +217,17 @@ class NotificationMessage(NiaMessage):
         notification_list = []
         notifications = response.findall('nia:SeznamNotifikaceIdp/nia:NotifikaceIdp', namespaces=self.get_namespace_map)
         for notification in notifications:
+            datetime_text = notification.find('nia:DatumACasNotifikace', namespaces=self.get_namespace_map).text
+            try:
+                notif_datetime = datetime.strptime(datetime_text, '%Y-%m-%dT%H:%M:%S.%f')
+            except ValueError:
+                notif_datetime = datetime.strptime(datetime_text, '%Y-%m-%dT%H:%M:%S')
             content = {
                 'id': notification.find('nia:NotifikaceIdpId', namespaces=self.get_namespace_map).text,
                 'pseudonym': notification.find('nia:Bsi', namespaces=self.get_namespace_map).text,
                 'source': notification.find('nia:Zdroj', namespaces=self.get_namespace_map).text,
                 'message': notification.find('nia:Text', namespaces=self.get_namespace_map).text,
-                'datetime': datetime.strptime(notification.find('nia:DatumACasNotifikace',
-                                                                namespaces=self.get_namespace_map).text,
-                                              '%Y-%m-%dT%H:%M:%S.%f'),
+                'datetime': notif_datetime,
             }
             reference_data = notification.find('nia:ReferencniData', namespaces=self.get_namespace_map)
             if reference_data is not None:
