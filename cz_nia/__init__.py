@@ -1,3 +1,3 @@
 """Python application for communication with Czech NIA."""
 
-__version__ = '0.5'
+__version__ = '0.6'
