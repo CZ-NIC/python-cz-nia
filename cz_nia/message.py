@@ -1,9 +1,8 @@
 """Messages for communication with NIA."""
 import os
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 from lxml.etree import Element, QName, SubElement, XMLSchema, fromstring, parse
 
@@ -188,7 +187,10 @@ class ChangeAuthenticatorMessage(NiaMessage):
         return None
 
 
-NotificationResult = namedtuple('NotificationResult', 'notifications last_id more_notifications')
+NotificationResult = NamedTuple('NotificationResult',
+                                [('notifications', List[Dict[str, Union[datetime, str]]]),
+                                 ('last_id', Optional[int]),
+                                 ('more_notifications', bool)])
 
 NOTIFICATION_MAP = {
     'AdresaPobytu': 'address',
