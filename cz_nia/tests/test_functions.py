@@ -3,10 +3,10 @@ import datetime
 import os
 from unittest import TestCase
 
+import responses
 from lxml.etree import fromstring
 from zeep.transports import Transport
 
-import responses
 from cz_nia.exceptions import NiaException
 from cz_nia.functions import (_call_federation, _call_identity, _call_submission, change_authenticator,
                               get_notification, get_pseudonym, write_authenticator)
