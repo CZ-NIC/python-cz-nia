@@ -130,6 +130,21 @@ class TestIdentificationMessage(TestCase):
         for child in message.iterchildren():
             self.assertEqual(child.text, expected[child.tag])
 
+    def test_create_message_address(self):
+        message = IdentificationMessage({'first_name': 'Eda', 'last_name': 'Tester',
+                                         'birth_date': datetime.date(2000, 5, 1), 'address': '1'}).create_message()
+        namespace = 'urn:nia.ztotozneni/request:v3'
+        expected = {
+            QName(namespace, 'AdresaPobytu'): '1',
+            QName(namespace, 'Jmeno'): 'Eda',
+            QName(namespace, 'Prijmeni'): 'Tester',
+            QName(namespace, 'TypPorovnani'): 'diakritika',
+            QName(namespace, 'DatumNarozeni'): '2000-05-01',
+        }
+        self.assertEqual(message.nsmap.get(message.prefix), namespace)
+        for child in message.iterchildren():
+            self.assertEqual(child.text, expected[child.tag])
+
 
 class TestWriteAuthenticatorMessage(TestCase):
     """Unittests for WriteAuthenticatorMessage."""
