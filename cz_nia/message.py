@@ -101,7 +101,7 @@ class IdentificationMessage(NiaMessage):
     def create_message(self) -> Element:
         """Prepare the ZTOTOZNENI message with user data."""
         id_request = Element(QName(self.request_namespace, 'ZtotozneniRequest'))
-        if 'address' in self.data:
+        if 'address' in self.data and self.data['address']:
             address = SubElement(id_request, QName(self.request_namespace, 'AdresaPobytu'))
             address.text = self.data.get('address')
         date_of_birth = SubElement(id_request, QName(self.request_namespace, 'DatumNarozeni'))
