@@ -202,7 +202,7 @@ class TestGetNotification(TestCase):
                      body=file_content('notifications.xml'))
             notifications = get_notification(SETTINGS)
         self.assertFalse(notifications.more_notifications)
-        self.assertIsNone(notifications.last_id)
+        self.assertEqual(notifications.last_id, 11701)
         self.assertEqual(len(notifications.notifications), 12)
         self.assertEqual(notifications.notifications[0],
                          {'source': 'ROBREF',
