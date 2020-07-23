@@ -244,7 +244,7 @@ class NotificationMessage(NiaMessage):
         if last_id_node is not None:
             last_id = int(last_id_node.text)  # type: Optional[int]
         else:
-            last_id = None
+            last_id = max((int(notif['id']) for notif in notification_list), default=None)
         more_notifications_node = response.find('nia:ExistujiDalsiNotifikace', namespaces=self.get_namespace_map)
         if more_notifications_node is not None:
             more_notifications = more_notifications_node.text.lower() == 'true'
