@@ -5,6 +5,7 @@ from unittest import TestCase
 
 import responses
 from lxml.etree import fromstring
+from xmlsec import Error as XmlsecError
 from zeep.transports import Transport
 
 from cz_nia.exceptions import NiaException
@@ -44,6 +45,13 @@ class TestCallIdentity(TestCase):
                 _call_identity(SETTINGS, TRANSPORT)
             self.assertIn('The server was unable to process', str(err.exception))
 
+    def test_xmlsec_error(self):
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
+                     body=XmlsecError('something failed...'))
+            with self.assertRaises(NiaException):
+                _call_identity(SETTINGS, TRANSPORT)
+
     def test_token(self):
         with responses.RequestsMock() as rsps:
             rsps.add(responses.POST, 'https://tnia.eidentita.cz/IPSTS/issue.svc/certificate',
@@ -63,6 +71,13 @@ class TestCallFederation(TestCase):
             with self.assertRaises(NiaException) as err:
                 _call_federation(SETTINGS, TRANSPORT, fromstring(file_content('fp_token.xml')))
             self.assertIn('The server was unable to process', str(err.exception))
+
+    def test_xmlsec_error(self):
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/FPSTS/Issue.svc',
+                     body=XmlsecError('something failed...'))
+            with self.assertRaises(NiaException):
+                _call_federation(SETTINGS, TRANSPORT, fromstring(file_content('fp_token.xml')))
 
     def test_token(self):
         with responses.RequestsMock() as rsps:
@@ -85,6 +100,15 @@ class TestCallSubmission(TestCase):
             with self.assertRaises(NiaException) as err:
                 _call_submission(SETTINGS, TRANSPORT, fromstring(file_content('sub_token.xml')), message)
             self.assertIn('The server was unable to process', str(err.exception))
+
+    def test_xmlsec_error(self):
+        message = IdentificationMessage({'first_name': 'Eda', 'last_name': 'Tester',
+                                         'birth_date': datetime.date(2000, 5, 1)})
+        with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, 'https://tnia.eidentita.cz/WS/submission/Public.svc/token',
+                     body=XmlsecError('something failed...'))
+            with self.assertRaises(NiaException):
+                _call_submission(SETTINGS, TRANSPORT, fromstring(file_content('sub_token.xml')), message)
 
     def test_token(self):
         message = IdentificationMessage({'first_name': 'Eda', 'last_name': 'Tester',
