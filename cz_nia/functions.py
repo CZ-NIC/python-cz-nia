@@ -58,7 +58,7 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
         history = HistoryPlugin()
         plugins.append(history)
     client = Client(settings.IDENTITY_WSDL,
-                    wsse=BinarySignature(settings.CERTIFICATE, settings.KEY,
+                    wsse=BinarySignature(settings.KEY, settings.CERTIFICATE,
                                          settings.PASSWORD),
                     settings=SETTINGS, transport=transport, plugins=plugins)
     # Prepare token
