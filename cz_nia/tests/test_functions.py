@@ -22,7 +22,7 @@ SETTINGS = CzNiaAppSettings({
     'federation_address': 'https://tnia.eidentita.cz/FPSTS/issue.svc',
     'public_address': 'https://tnia.eidentita.cz/ws/submission/public.svc/token',
     'certificate': os.path.join(BASENAME, 'NIA.pem'),
-    'key': os.path.join(BASENAME, 'NIA.pem'),
+    'key': os.path.join(BASENAME, 'NIA_key.pem'),
     'password': None}
 )
 TRANSPORT = Transport()
