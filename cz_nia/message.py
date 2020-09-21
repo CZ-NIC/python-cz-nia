@@ -84,6 +84,8 @@ class NiaMessage(ABC):
         body = fromstring(message)
         nsmap = self.get_namespace_map
         response = body.find('gov:Body/nia:{}'.format(self.response_class), namespaces=nsmap)
+        if response is None:
+            raise NiaException('Empty response')
         if response.find('nia:Status', namespaces=nsmap).text != 'OK':
             raise NiaException(response.find('nia:Detail', namespaces=nsmap).text)
         return response
