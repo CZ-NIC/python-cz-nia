@@ -101,6 +101,13 @@ class TestNiaMessage(TestCase):
         with self.assertRaises(NiaException):
             NiaMessageTestClass('').verify_message(response)
 
+    def test_verify_message_empty(self):
+        response = b'<bodies xmlns="http://www.government-gateway.cz/wcf/submission"> \
+                     <Body Id="0" xmlns="http://www.govtalk.gov.uk/CM/envelope" /> \
+                     </bodies>'
+        with self.assertRaises(NiaException):
+            NiaMessageTestClass('').verify_message(response)
+
 
 class TestIdentificationMessage(TestCase):
     """Unittests for IdentificationMessage."""
