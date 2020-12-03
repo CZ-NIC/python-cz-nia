@@ -4,6 +4,7 @@ from enum import Enum, unique
 from typing import Any, Dict
 
 from lxml.etree import Element, QName, tostring
+from requests.exceptions import RequestException
 from xmlsec import Error as XmlsecError
 from zeep import Client, Settings
 from zeep.cache import SqliteCache
@@ -76,7 +77,7 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
     service = client.bind('SecurityTokenService', 'WS2007HttpBinding_IWSTrust13Sync2')
     try:
         response = service.Trust13Issue(_value_1=[token, request, key, applies])
-    except (Error, XmlsecError) as err:
+    except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, 'IPSTS', success=False)
         raise NiaException(err)
     _log_history(history, settings, 'IPSTS')
@@ -101,7 +102,7 @@ def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion
     service = client.bind('SecurityTokenService', 'WS2007FederationHttpBinding_IWSTrust13Sync')
     try:
         response = service.Trust13Issue(_value_1=[applies, request])
-    except (Error, XmlsecError) as err:
+    except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, 'FPSTS', success=False)
         raise NiaException(err)
     _log_history(history, settings, 'FPSTS')
@@ -125,7 +126,7 @@ def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion
     try:
         response = service.Submit(message.action,
                                   bodies_type(body_part_type(Body={'_value_1': message.pack()})), '')
-    except (Error, XmlsecError) as err:
+    except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, 'Submission', success=False)
         raise NiaException(err)
     _log_history(history, settings, 'Submission')
