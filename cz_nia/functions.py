@@ -1,7 +1,7 @@
 """Views for communication with NIA."""
 from base64 import b64decode
 from enum import Enum, unique
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from lxml.etree import Element, QName, tostring
 from requests.exceptions import RequestException
@@ -168,7 +168,7 @@ def change_authenticator(settings: CzNiaAppSettings, data: Dict[str, str]):
     return message.unpack(body)
 
 
-def get_notification(settings: CzNiaAppSettings, data: Dict[str, str] = None) -> NotificationResult:
+def get_notification(settings: CzNiaAppSettings, data: Optional[Dict[str, str]] = None) -> NotificationResult:
     """Get notifications."""
     transport = Transport(cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT),
                           timeout=settings.TRANSPORT_TIMEOUT)
