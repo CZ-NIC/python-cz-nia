@@ -25,10 +25,10 @@ def _signature_prepare(envelope, key, signature_method, digest_method, signature
 
     # Add a KeyInfo node with X509Data child to the Signature. XMLSec will fill
     # in this template with the actual certificate details when it signs.
-    key_info = xmlsec.template.ensure_key_info(signature)
-    x509_data = xmlsec.template.add_x509_data(key_info)
-    xmlsec.template.x509_data_add_issuer_serial(x509_data)
-    xmlsec.template.x509_data_add_certificate(x509_data)
+    key_info = xmlsec.template.ensure_key_info(signature)  # type: ignore[attr-defined]
+    x509_data = xmlsec.template.add_x509_data(key_info)  # type: ignore[attr-defined]
+    xmlsec.template.x509_data_add_issuer_serial(x509_data)  # type: ignore[attr-defined]
+    xmlsec.template.x509_data_add_certificate(x509_data)  # type: ignore[attr-defined]
 
     # Insert the Signature node in the wsse:Security header.
     security = get_security_header(envelope)
