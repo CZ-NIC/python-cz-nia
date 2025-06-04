@@ -13,7 +13,7 @@ setup(
     description="Python application for communication with Czech NIA.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    python_requires="~=3.8",
+    python_requires="~=3.9",
     packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
