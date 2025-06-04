@@ -3,7 +3,7 @@
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any, NamedTuple, Optional, Union
 
 from lxml.etree import Element, QName, SubElement, XMLSchema, fromstring, parse
 
@@ -54,7 +54,7 @@ class NiaMessage(ABC):
         """Extract relevant data from the message."""
 
     @property
-    def get_namespace_map(self) -> Dict[str, str]:
+    def get_namespace_map(self) -> dict[str, str]:
         """Return namespace map for the message."""
         return {"gov": self.govtalk_namespace, "nia": self.response_namespace}
 
@@ -190,14 +190,11 @@ class ChangeAuthenticatorMessage(NiaMessage):
         return None
 
 
-NotificationResult = NamedTuple(
-    "NotificationResult",
-    [
-        ("notifications", List[Dict[str, Union[datetime, str]]]),
-        ("last_id", Optional[int]),
-        ("more_notifications", bool),
-    ],
-)
+class NotificationResult(NamedTuple):
+    notifications: list[dict[str, Union[datetime, str]]]
+    last_id: Optional[int]
+    more_notifications: bool
+
 
 NOTIFICATION_MAP = {
     "AdresaPobytu": "address",

@@ -2,7 +2,7 @@
 
 from base64 import b64decode
 from enum import Enum, unique
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from lxml.etree import Element, QName, tostring
 from requests.exceptions import RequestException
@@ -92,7 +92,7 @@ def _call_identity(settings: CzNiaAppSettings, transport: Transport) -> Element:
         response = service.Trust13Issue(_value_1=[token, request, key, applies])
     except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, "IPSTS", success=False)
-        raise NiaException(err)
+        raise NiaException(err) from err
     _log_history(history, settings, "IPSTS")
     return response.RequestSecurityTokenResponse[0]["_value_1"][3]["_value_1"]
 
@@ -122,7 +122,7 @@ def _call_federation(settings: CzNiaAppSettings, transport: Transport, assertion
         response = service.Trust13Issue(_value_1=[applies, request])
     except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, "FPSTS", success=False)
-        raise NiaException(err)
+        raise NiaException(err) from err
     _log_history(history, settings, "FPSTS")
     return response.RequestSecurityTokenResponse[0]["_value_1"][3]["_value_1"]
 
@@ -150,12 +150,12 @@ def _call_submission(settings: CzNiaAppSettings, transport: Transport, assertion
         response = service.Submit(message.action, bodies_type(body_part_type(Body={"_value_1": message.pack()})), "")
     except (Error, XmlsecError, RequestException) as err:
         _log_history(history, settings, "Submission", success=False)
-        raise NiaException(err)
+        raise NiaException(err) from err
     _log_history(history, settings, "Submission")
     return b64decode(response.BodyBase64XML)
 
 
-def get_pseudonym(settings: CzNiaAppSettings, user_data: Dict[str, Any]) -> str:
+def get_pseudonym(settings: CzNiaAppSettings, user_data: dict[str, Any]) -> str:
     """Get pseudonym from NIA servers for given user data."""
     transport = Transport(
         cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT), timeout=settings.TRANSPORT_TIMEOUT
@@ -180,7 +180,7 @@ def write_authenticator(settings: CzNiaAppSettings, data):
     return message.unpack(body)
 
 
-def change_authenticator(settings: CzNiaAppSettings, data: Dict[str, str]):
+def change_authenticator(settings: CzNiaAppSettings, data: dict[str, str]):
     """Write a change to the VIP."""
     transport = Transport(
         cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT), timeout=settings.TRANSPORT_TIMEOUT
@@ -193,7 +193,7 @@ def change_authenticator(settings: CzNiaAppSettings, data: Dict[str, str]):
     return message.unpack(body)
 
 
-def get_notification(settings: CzNiaAppSettings, data: Optional[Dict[str, str]] = None) -> NotificationResult:
+def get_notification(settings: CzNiaAppSettings, data: Optional[dict[str, str]] = None) -> NotificationResult:
     """Get notifications."""
     transport = Transport(
         cache=SqliteCache(path=settings.CACHE_PATH, timeout=settings.CACHE_TIMEOUT), timeout=settings.TRANSPORT_TIMEOUT

@@ -1,7 +1,7 @@
 """CZ_NIA application settings wrapper."""
 
 
-class CzNiaAppSettings(object):
+class CzNiaAppSettings:
     """CZ_NIA specific settings."""
 
     def __init__(self, settings):

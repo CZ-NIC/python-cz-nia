@@ -29,8 +29,8 @@ def _signature_prepare(envelope, key, signature_method, digest_method, signature
     # Create the Signature node.
     signature = xmlsec.template.create(
         envelope,
-        xmlsec.Transform.EXCL_C14N,  # type: ignore
-        signature_method or xmlsec.Transform.RSA_SHA1,
+        xmlsec.Transform.EXCL_C14N,  # type: ignore[attr-defined]
+        signature_method or xmlsec.Transform.RSA_SHA1,  # type: ignore[attr-defined]
     )  # type: ignore
 
     # Add a KeyInfo node with X509Data child to the Signature. XMLSec will fill
@@ -149,11 +149,11 @@ def _verify_envelope_with_key(envelope, key):
 
     header = envelope.find(QName(soap_env, "Header"))
     if header is None:
-        raise SignatureVerificationFailed()
+        raise SignatureVerificationFailed
 
     security = header.find(QName(ns.WSSE, "Security"))
     if security is None:
-        raise SignatureVerificationFailed()
+        raise SignatureVerificationFailed
 
     signature = security.find(QName(ns.DS, "Signature"))
 
@@ -224,7 +224,7 @@ class BinarySignature(ZeepSignature):
         return envelope
 
 
-class SAMLTokenSignature(object):
+class SAMLTokenSignature:
     """Sign given SOAP envelope with WSSE sig using given HMAC key."""
 
     def __init__(
