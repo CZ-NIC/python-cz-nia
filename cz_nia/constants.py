@@ -1,4 +1,5 @@
 """Constants for NIA communications."""
+
 from enum import Enum, unique
 
 
