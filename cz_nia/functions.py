@@ -32,15 +32,18 @@ class NiaNamespaces(str, Enum):
     SUBMISSION = 'http://www.government-gateway.cz/wcf/submission'
 
 
-def _log_history(history: HistoryPlugin, settings: CzNiaAppSettings, endpoint: str, success: bool = True):
+def _log_history(history: Optional[HistoryPlugin], settings: CzNiaAppSettings, endpoint: str, success: bool = True):
     """Print debug info from history plugin."""
     if settings.DEBUG:
+        assert history is not None
         if not success:
             print('Exception in {} endpoint:'.format(endpoint))
         print('Message sent to {} endpoint:'.format(endpoint))
         print(tostring(history.last_sent['envelope'], pretty_print=True, encoding='unicode'))
         print('Message received from {} endpoint:'.format(endpoint))
-        print(tostring(history.last_received['envelope'], pretty_print=True, encoding='unicode'))
+        last_received = history.last_received
+        if last_received is not None:
+            print(tostring(last_received['envelope'], pretty_print=True, encoding='unicode'))
 
 
 def _get_wsa_header(client: Client, address: str) -> AnyObject:
