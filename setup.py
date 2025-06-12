@@ -23,7 +23,7 @@ setup(
         "lxml ~= 5.0",
     ],
     extras_require={
-        "quality": ["isort", "flake8", "pydocstyle", "mypy"],
+        "quality": ["ruff", "mypy"],
         "tests": ["responses"],
         "types": ["types-requests"],
     },

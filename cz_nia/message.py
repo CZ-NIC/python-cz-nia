@@ -1,8 +1,9 @@
 """Messages for communication with NIA."""
+
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any, NamedTuple, Optional, Union
 
 from lxml.etree import Element, QName, SubElement, XMLSchema, fromstring, parse
 
@@ -13,7 +14,7 @@ from cz_nia.exceptions import NiaException
 class NiaMessage(ABC):
     """Base class for messages."""
 
-    govtalk_namespace = 'http://www.govtalk.gov.uk/CM/envelope'
+    govtalk_namespace = "http://www.govtalk.gov.uk/CM/envelope"
 
     @property
     @abstractmethod
@@ -53,9 +54,9 @@ class NiaMessage(ABC):
         """Extract relevant data from the message."""
 
     @property
-    def get_namespace_map(self) -> Dict[str, str]:
+    def get_namespace_map(self) -> dict[str, str]:
         """Return namespace map for the message."""
-        return {'gov': self.govtalk_namespace, 'nia': self.response_namespace}
+        return {"gov": self.govtalk_namespace, "nia": self.response_namespace}
 
     def validate(self, message: Element) -> None:
         """Validate the constructed request against a XSD."""
@@ -83,76 +84,76 @@ class NiaMessage(ABC):
         """
         body = fromstring(message)
         nsmap = self.get_namespace_map
-        response = body.find('gov:Body/nia:{}'.format(self.response_class), namespaces=nsmap)
+        response = body.find("gov:Body/nia:{}".format(self.response_class), namespaces=nsmap)
         if response is None:
-            raise NiaException('Empty response')
-        if response.find('nia:Status', namespaces=nsmap).text != 'OK':
-            raise NiaException(response.find('nia:Detail', namespaces=nsmap).text)
+            raise NiaException("Empty response")
+        if response.find("nia:Status", namespaces=nsmap).text != "OK":
+            raise NiaException(response.find("nia:Detail", namespaces=nsmap).text)
         return response
 
 
 class IdentificationMessage(NiaMessage):
     """Message for TR_ZTOTOZNENI."""
 
-    request_namespace = 'urn:nia.ztotozneni/request:v3'
-    response_namespace = 'urn:nia.ztotozneni/response:v4'
-    response_class = 'ZtotozneniResponse'
-    action = 'TR_ZTOTOZNENI'
-    xmlschema_definition = 'ZtotozneniRequest.xsd'
+    request_namespace = "urn:nia.ztotozneni/request:v3"
+    response_namespace = "urn:nia.ztotozneni/response:v4"
+    response_class = "ZtotozneniResponse"
+    action = "TR_ZTOTOZNENI"
+    xmlschema_definition = "ZtotozneniRequest.xsd"
 
     def create_message(self) -> Element:
         """Prepare the ZTOTOZNENI message with user data."""
-        id_request = Element(QName(self.request_namespace, 'ZtotozneniRequest'))
-        if 'address' in self.data and self.data['address']:
-            address = SubElement(id_request, QName(self.request_namespace, 'AdresaPobytu'))
-            address.text = self.data.get('address')
-        date_of_birth = SubElement(id_request, QName(self.request_namespace, 'DatumNarozeni'))
-        date_of_birth.text = self.data.get('birth_date').isoformat()
-        name = SubElement(id_request, QName(self.request_namespace, 'Jmeno'))
-        name.text = self.data.get('first_name')
-        surname = SubElement(id_request, QName(self.request_namespace, 'Prijmeni'))
-        surname.text = self.data.get('last_name')
-        compare_type = SubElement(id_request, QName(self.request_namespace, 'TypPorovnani'))
-        compare_type.text = 'diakritika'
+        id_request = Element(QName(self.request_namespace, "ZtotozneniRequest"))
+        if "address" in self.data and self.data["address"]:
+            address = SubElement(id_request, QName(self.request_namespace, "AdresaPobytu"))
+            address.text = self.data.get("address")
+        date_of_birth = SubElement(id_request, QName(self.request_namespace, "DatumNarozeni"))
+        date_of_birth.text = self.data.get("birth_date").isoformat()
+        name = SubElement(id_request, QName(self.request_namespace, "Jmeno"))
+        name.text = self.data.get("first_name")
+        surname = SubElement(id_request, QName(self.request_namespace, "Prijmeni"))
+        surname.text = self.data.get("last_name")
+        compare_type = SubElement(id_request, QName(self.request_namespace, "TypPorovnani"))
+        compare_type.text = "diakritika"
         return id_request
 
     def extract_message(self, response: Element) -> str:
         """Get pseudonym from the message."""
-        return response.find('nia:Pseudonym', namespaces=self.get_namespace_map).text
+        return response.find("nia:Pseudonym", namespaces=self.get_namespace_map).text
 
 
 class WriteAuthenticatorMessage(NiaMessage):
     """Message for TR_EVIDENCE_VIP_ZAPIS."""
 
-    request_namespace = 'urn:nia.EvidenceVIPZapis/request:v2'
-    response_namespace = 'urn:nia.EvidenceVIPZapis/response:v1'
-    response_class = 'EvidenceVIPZapisResponse'
-    action = 'TR_EVIDENCE_VIP_ZAPIS'
-    xmlschema_definition = 'EvidenceVIPZapisRequest.xsd'
+    request_namespace = "urn:nia.EvidenceVIPZapis/request:v2"
+    response_namespace = "urn:nia.EvidenceVIPZapis/response:v1"
+    response_class = "EvidenceVIPZapisResponse"
+    action = "TR_EVIDENCE_VIP_ZAPIS"
+    xmlschema_definition = "EvidenceVIPZapisRequest.xsd"
 
     def create_message(self) -> Element:
         """Prepare the EVIDENCE_VIP_ZAPIS message."""
-        id_request = Element(QName(self.request_namespace, 'EvidenceVIPZapisRequest'))
-        bsi = SubElement(id_request, QName(self.request_namespace, 'Bsi'))
-        bsi.text = self.data.get('pseudonym')
-        id_prostr = SubElement(id_request, QName(self.request_namespace, 'IdentifikaceProstredku'))
-        id_prostr.text = self.data.get('identification')
-        loa = SubElement(id_request, QName(self.request_namespace, 'LoA'))
-        loa.text = self.data.get('level_of_authentication')
-        if self.data.get('state'):
-            state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
-            state.text = self.data.get('state')
-        verified = SubElement(id_request, QName(self.request_namespace, 'OverenoDoklademTotoznosti'))
+        id_request = Element(QName(self.request_namespace, "EvidenceVIPZapisRequest"))
+        bsi = SubElement(id_request, QName(self.request_namespace, "Bsi"))
+        bsi.text = self.data.get("pseudonym")
+        id_prostr = SubElement(id_request, QName(self.request_namespace, "IdentifikaceProstredku"))
+        id_prostr.text = self.data.get("identification")
+        loa = SubElement(id_request, QName(self.request_namespace, "LoA"))
+        loa.text = self.data.get("level_of_authentication")
+        if self.data.get("state"):
+            state = SubElement(id_request, QName(self.request_namespace, "Stav"))
+            state.text = self.data.get("state")
+        verified = SubElement(id_request, QName(self.request_namespace, "OverenoDoklademTotoznosti"))
         # This has to be lowercase string
-        verified.text = self.data.get('verified', 'false').lower()
-        if self.data.get('verified') and self.data.get('id_data'):
-            id_data = self.data.get('id_data')
+        verified.text = self.data.get("verified", "false").lower()
+        if self.data.get("verified") and self.data.get("id_data"):
+            id_data = self.data.get("id_data")
             # We have verified using an ID and have the correct data
-            id_card = SubElement(id_request, QName(self.request_namespace, 'PrukazTotoznosti'))
-            id_card_number = SubElement(id_card, QName(self.request_namespace, 'Cislo'))
-            id_card_number.text = id_data.get('number')
-            id_card_type = SubElement(id_card, QName(self.request_namespace, 'Druh'))
-            id_card_type.text = id_data.get('type')
+            id_card = SubElement(id_request, QName(self.request_namespace, "PrukazTotoznosti"))
+            id_card_number = SubElement(id_card, QName(self.request_namespace, "Cislo"))
+            id_card_number.text = id_data.get("number")
+            id_card_type = SubElement(id_card, QName(self.request_namespace, "Druh"))
+            id_card_type.text = id_data.get("type")
         return id_request
 
     def extract_message(self, response):
@@ -163,25 +164,25 @@ class WriteAuthenticatorMessage(NiaMessage):
 class ChangeAuthenticatorMessage(NiaMessage):
     """Message for TR_EVIDENCE_VIP_ZMENA."""
 
-    request_namespace = 'urn:nia.EvidenceVIPZmena/request:v1'
-    response_namespace = 'urn:nia.EvidenceVIPZmena/response:v1'
-    response_class = 'EvidenceVIPZmenaResponse'
-    action = 'TR_EVIDENCE_VIP_ZMENA'
-    xmlschema_definition = 'EvidenceZmenaRequest.xsd'
+    request_namespace = "urn:nia.EvidenceVIPZmena/request:v1"
+    response_namespace = "urn:nia.EvidenceVIPZmena/response:v1"
+    response_class = "EvidenceVIPZmenaResponse"
+    action = "TR_EVIDENCE_VIP_ZMENA"
+    xmlschema_definition = "EvidenceZmenaRequest.xsd"
 
     def create_message(self) -> Element:
         """Prepare the EVIDENCE_VIP_ZMENA message."""
-        id_request = Element(QName(self.request_namespace, 'EvidenceVIPZmenaRequest'))
-        bsi = SubElement(id_request, QName(self.request_namespace, 'Bsi'))
-        bsi.text = self.data.get('pseudonym')
-        id_prostr = SubElement(id_request, QName(self.request_namespace, 'IdentifikaceProstredku'))
-        id_prostr.text = self.data.get('identification')
-        loa = SubElement(id_request, QName(self.request_namespace, 'LoA'))
-        loa.text = self.data.get('level_of_authentication')
-        state = SubElement(id_request, QName(self.request_namespace, 'Stav'))
-        state.text = self.data.get('state')
-        message = SubElement(id_request, QName(self.request_namespace, 'Zprava'))
-        message.text = self.data.get('message')
+        id_request = Element(QName(self.request_namespace, "EvidenceVIPZmenaRequest"))
+        bsi = SubElement(id_request, QName(self.request_namespace, "Bsi"))
+        bsi.text = self.data.get("pseudonym")
+        id_prostr = SubElement(id_request, QName(self.request_namespace, "IdentifikaceProstredku"))
+        id_prostr.text = self.data.get("identification")
+        loa = SubElement(id_request, QName(self.request_namespace, "LoA"))
+        loa.text = self.data.get("level_of_authentication")
+        state = SubElement(id_request, QName(self.request_namespace, "Stav"))
+        state.text = self.data.get("state")
+        message = SubElement(id_request, QName(self.request_namespace, "Zprava"))
+        message.text = self.data.get("message")
         return id_request
 
     def extract_message(self, response):
@@ -189,68 +190,70 @@ class ChangeAuthenticatorMessage(NiaMessage):
         return None
 
 
-NotificationResult = NamedTuple('NotificationResult',
-                                [('notifications', List[Dict[str, Union[datetime, str]]]),
-                                 ('last_id', Optional[int]),
-                                 ('more_notifications', bool)])
+class NotificationResult(NamedTuple):
+    notifications: list[dict[str, Union[datetime, str]]]
+    last_id: Optional[int]
+    more_notifications: bool
+
 
 NOTIFICATION_MAP = {
-    'AdresaPobytu': 'address',
-    'Jmeno': 'given_name',
-    'Prijmeni': 'last_name',
-    'DatumNarozeni': 'date_of_birth',
+    "AdresaPobytu": "address",
+    "Jmeno": "given_name",
+    "Prijmeni": "last_name",
+    "DatumNarozeni": "date_of_birth",
 }
 
 
 class NotificationMessage(NiaMessage):
     """Message for TR_NOTIFIKACE_IDP."""
 
-    request_namespace = 'urn:nia.notifikaceIdp/request:v1'
-    response_namespace = 'urn:nia.notifikaceIdp/response:v1'
-    response_class = 'NotifikaceIdpResponse'
-    action = 'TR_NOTIFIKACE_IDP'
-    xmlschema_definition = 'NotifikaceIdpRequest.xsd'
+    request_namespace = "urn:nia.notifikaceIdp/request:v1"
+    response_namespace = "urn:nia.notifikaceIdp/response:v1"
+    response_class = "NotifikaceIdpResponse"
+    action = "TR_NOTIFIKACE_IDP"
+    xmlschema_definition = "NotifikaceIdpRequest.xsd"
 
     def create_message(self) -> Element:
         """Prepare the NOTIFIKACE message."""
-        id_request = Element(QName(self.request_namespace, 'NotifikaceIdpRequest'))
+        id_request = Element(QName(self.request_namespace, "NotifikaceIdpRequest"))
         if self.data is not None:
-            idp_id = SubElement(id_request, QName(self.request_namespace, 'NotifikaceIdpId'))
-            idp_id.text = str(self.data.get('id'))
+            idp_id = SubElement(id_request, QName(self.request_namespace, "NotifikaceIdpId"))
+            idp_id.text = str(self.data.get("id"))
         return id_request
 
     def extract_message(self, response) -> NotificationResult:
         """Get notifications from the message."""
         notification_list = []
-        notifications = response.findall('nia:SeznamNotifikaceIdp/nia:NotifikaceIdp', namespaces=self.get_namespace_map)
+        notifications = response.findall("nia:SeznamNotifikaceIdp/nia:NotifikaceIdp", namespaces=self.get_namespace_map)
         for notification in notifications:
-            datetime_text = notification.find('nia:DatumACasNotifikace', namespaces=self.get_namespace_map).text
+            datetime_text = notification.find("nia:DatumACasNotifikace", namespaces=self.get_namespace_map).text
             try:
-                notif_datetime = datetime.strptime(datetime_text, '%Y-%m-%dT%H:%M:%S.%f')
+                notif_datetime = datetime.strptime(datetime_text, "%Y-%m-%dT%H:%M:%S.%f")
             except ValueError:
-                notif_datetime = datetime.strptime(datetime_text, '%Y-%m-%dT%H:%M:%S')
+                notif_datetime = datetime.strptime(datetime_text, "%Y-%m-%dT%H:%M:%S")
             content = {
-                'id': notification.find('nia:NotifikaceIdpId', namespaces=self.get_namespace_map).text,
-                'pseudonym': notification.find('nia:Bsi', namespaces=self.get_namespace_map).text,
-                'source': notification.find('nia:Zdroj', namespaces=self.get_namespace_map).text,
-                'message': notification.find('nia:Text', namespaces=self.get_namespace_map).text,
-                'datetime': notif_datetime,
+                "id": notification.find("nia:NotifikaceIdpId", namespaces=self.get_namespace_map).text,
+                "pseudonym": notification.find("nia:Bsi", namespaces=self.get_namespace_map).text,
+                "source": notification.find("nia:Zdroj", namespaces=self.get_namespace_map).text,
+                "message": notification.find("nia:Text", namespaces=self.get_namespace_map).text,
+                "datetime": notif_datetime,
             }
-            reference_data = notification.find('nia:ReferencniData', namespaces=self.get_namespace_map)
+            reference_data = notification.find("nia:ReferencniData", namespaces=self.get_namespace_map)
             if reference_data is not None:
                 for child in reference_data.iterchildren():
                     tag = QName(child.tag).localname
-                    content[NOTIFICATION_MAP.get(tag, '_' + tag)] = child.text
+                    content[NOTIFICATION_MAP.get(tag, "_" + tag)] = child.text
             notification_list.append(content)
-        last_id_node = response.find('nia:NotifikaceIdpPosledniId', namespaces=self.get_namespace_map)
+        last_id_node = response.find("nia:NotifikaceIdpPosledniId", namespaces=self.get_namespace_map)
         if last_id_node is not None:
             last_id = int(last_id_node.text)  # type: Optional[int]
         else:
-            last_id = max((int(notif['id']) for notif in notification_list), default=None)
-        more_notifications_node = response.find('nia:ExistujiDalsiNotifikace', namespaces=self.get_namespace_map)
+            last_id = max((int(notif["id"]) for notif in notification_list), default=None)
+        more_notifications_node = response.find("nia:ExistujiDalsiNotifikace", namespaces=self.get_namespace_map)
         if more_notifications_node is not None:
-            more_notifications = more_notifications_node.text.lower() == 'true'
+            more_notifications = more_notifications_node.text.lower() == "true"
         else:
             more_notifications = False
-        return NotificationResult(notifications=notification_list, last_id=last_id,
-                                  more_notifications=more_notifications)
+        return NotificationResult(
+            notifications=notification_list, last_id=last_id, more_notifications=more_notifications
+        )
