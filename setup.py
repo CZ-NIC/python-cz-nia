@@ -19,8 +19,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "zeep @ git+https://github.com/blaggacao/python-zeep.git@signed_parts",
-        "xmlsec <= 1.3.15",
-        "lxml ~= 5.0",
+        "xmlsec",
+        "lxml ~= 6.0",
     ],
     extras_require={
         "quality": ["ruff", "mypy"],
